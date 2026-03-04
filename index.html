@@ -407,9 +407,10 @@ canvas{position:absolute;top:0;left:0;image-rendering:pixelated;touch-action:non
 #pauseMenu.on{display:flex}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 .pauseBox{background:linear-gradient(160deg,rgba(9,22,11,.99),rgba(4,12,6,.99));
-  border:1.5px solid rgba(78,203,113,.3);border-radius:22px;padding:26px 30px;
-  width:min(310px,90vw);box-shadow:0 24px 70px rgba(0,0,0,.85),0 0 50px rgba(78,203,113,.06),inset 0 1px 0 rgba(78,203,113,.12);
-  display:flex;flex-direction:column;gap:12px;animation:scaleIn .22s cubic-bezier(.34,1.56,.64,1)}
+  border:1.5px solid rgba(78,203,113,.3);border-radius:22px;padding:22px 24px;
+  width:min(340px,94vw);max-height:92vh;overflow-y:auto;
+  box-shadow:0 24px 70px rgba(0,0,0,.85),0 0 50px rgba(78,203,113,.06),inset 0 1px 0 rgba(78,203,113,.12);
+  display:flex;flex-direction:column;gap:11px;animation:scaleIn .22s cubic-bezier(.34,1.56,.64,1)}
 @keyframes scaleIn{from{opacity:0;transform:scale(.88)}to{opacity:1;transform:scale(1)}}
 .pauseTit{font-family:'Fredoka One',cursive;font-size:24px;color:var(--g);text-align:center;
   letter-spacing:1px;text-shadow:0 0 24px rgba(78,203,113,.5);display:flex;align-items:center;justify-content:center;gap:8px}
@@ -550,6 +551,57 @@ canvas{position:absolute;top:0;left:0;image-rendering:pixelated;touch-action:non
   box-shadow:0 0 14px rgba(78,203,113,.35),0 2px 10px rgba(0,0,0,.4)}
 .pauseTopBtn:active{transform:scale(.88)}
 
+/* ═══ IN-PAUSE MULTIPLAYER PANEL ═══ */
+.mpInPanel{background:rgba(4,10,22,.7);border:1.5px solid rgba(52,152,219,.22);
+  border-radius:13px;padding:11px 12px;display:flex;flex-direction:column;gap:8px}
+.mpInTabs{display:flex;gap:5px}
+.mpInTab{flex:1;text-align:center;font-family:'Fredoka One',cursive;font-size:11px;
+  padding:6px 0;border-radius:8px;cursor:pointer;color:#3a5a7a;
+  border:1.5px solid rgba(52,152,219,.14);background:rgba(52,152,219,.05);transition:.14s}
+.mpInTab.on{background:rgba(52,152,219,.18);border-color:rgba(52,152,219,.45);color:#74b9ff}
+.mpInTab:hover:not(.on){background:rgba(52,152,219,.1);color:#5a9aba}
+.mpInLabel{font-size:7.5px;font-weight:900;letter-spacing:1.2px;color:#2a4a6a;margin-bottom:4px}
+.mpInCode{font-family:'Fredoka One',cursive;font-size:22px;color:#fff;letter-spacing:6px;
+  text-align:center;padding:7px 0;background:rgba(52,152,219,.1);border-radius:8px;
+  cursor:pointer;border:1px solid rgba(52,152,219,.18);transition:.14s}
+.mpInCode:hover{background:rgba(52,152,219,.2);border-color:rgba(52,152,219,.4)}
+.mpInHint{font-size:7px;color:#1e3a4a;text-align:center}
+.mpInPlayers{min-height:32px;background:rgba(0,0,0,.2);border-radius:7px;padding:5px 7px;margin-top:2px}
+.mpInEmpty{font-size:8px;color:#1e2e3a;text-align:center;padding:4px 0}
+.mpInPeer{display:flex;align-items:center;gap:6px;padding:2px 0;font-size:9px;color:#74b9ff;font-weight:700}
+.mpInPeerDot{width:6px;height:6px;border-radius:50%;background:#4ecb71;flex-shrink:0;animation:mpda 2s infinite}
+.mpInStatus{display:flex;align-items:center;gap:5px;margin-top:2px}
+.mpInDot{width:6px;height:6px;border-radius:50%;background:#282828;transition:.3s}
+.mpInDot.on{background:#4ecb71;box-shadow:0 0 6px rgba(78,203,113,.6)}
+#mpStatTxt{font-size:8px;color:#2a4a2a}
+.mpInJoinRow{display:flex;gap:6px;align-items:center;margin-top:2px}
+.mpInJoinI{flex:1;background:rgba(0,0,0,.45);border:1.5px solid rgba(52,152,219,.25);border-radius:8px;
+  padding:7px 10px;color:#fff;font-family:'Nunito',sans-serif;font-size:16px;font-weight:800;
+  letter-spacing:5px;outline:none;text-transform:uppercase;text-align:center;transition:.14s}
+.mpInJoinI:focus{border-color:#74b9ff;box-shadow:0 0 0 2px rgba(116,185,255,.12)}
+.mpInJoinBtn{font-family:'Fredoka One',cursive;font-size:11px;padding:7px 12px;
+  background:linear-gradient(135deg,#2980b9,#1a6899);border:none;border-radius:8px;
+  color:#fff;cursor:pointer;white-space:nowrap;transition:.14s;
+  box-shadow:0 3px 10px rgba(41,128,185,.35)}
+.mpInJoinBtn:hover{background:linear-gradient(135deg,#3390c9,#2a78a9)}
+#mpActiveBar{margin-top:2px}
+.mpLeaveBtn{width:100%;font-family:'Fredoka One',cursive;font-size:10px;padding:6px;
+  background:rgba(231,76,60,.1);border:1.5px solid rgba(231,76,60,.25);border-radius:8px;
+  color:#e98080;cursor:pointer;transition:.13s}
+.mpLeaveBtn:hover{background:rgba(231,76,60,.2)}
+
+/* ═══ DLC TOGGLE ═══ */
+.dlcToggle{display:flex;align-items:center;justify-content:space-between;margin-top:8px}
+.dlcToggleTrack{width:36px;height:20px;border-radius:20px;background:rgba(0,0,0,.4);
+  border:1.5px solid rgba(78,203,113,.2);position:relative;cursor:pointer;transition:.2s;flex-shrink:0}
+.dlcToggleTrack.on{background:rgba(78,203,113,.28);border-color:rgba(78,203,113,.55)}
+.dlcToggleKnob{position:absolute;top:2px;left:2px;width:13px;height:13px;border-radius:50%;
+  background:#3a5a4a;transition:.2s cubic-bezier(.34,1.56,.64,1)}
+.dlcToggleTrack.on .dlcToggleKnob{left:19px;background:#4ecb71;box-shadow:0 0 6px rgba(78,203,113,.5)}
+.dlcToggleLabel{font-size:9px;color:#5a4a7a;font-weight:800}
+.dlcToggleLabel.on{color:#8adcaa}
+.dlcCard.disabled{opacity:.5;filter:grayscale(.5)}
+
 </style>
 </head>
 <body>
@@ -577,8 +629,7 @@ canvas{position:absolute;top:0;left:0;image-rendering:pixelated;touch-action:non
     </div>
     <div class="iRight">
       <button class="bM" onclick="goWorldSelect()">🌍 Mis Mundos</button>
-      <button class="bM" style="background:linear-gradient(135deg,#2980b9,#1a6899);box-shadow:0 4px 14px rgba(41,128,185,.44),0 2px 0 #0d3c5a" onclick="goMp()">👥 Multijugador</button>
-      <button class="bS" style="border-color:rgba(168,85,247,.4);color:#c084fc" onclick="goMods()">🧩 Mods &amp; DLC</button>
+      <button class="bS" style="border-color:rgba(168,85,247,.4);color:#c084fc" onclick="goMods()">🧩 Expansiones</button>
       <button class="bS" onclick="toggleAudio()" id="audioToggle">🔊 Música: Sí</button>
       <div class="iHint">WASD/Joystick · E Recolectar · C Craftear · F Usar · I Inventario</div>
     </div>
@@ -622,38 +673,6 @@ canvas{position:absolute;top:0;left:0;image-rendering:pixelated;touch-action:non
   </div>
 </div>
 
-<!-- ═══ MULTIPLAYER ═══ -->
-<div class="scr" id="sMp" style="display:none">
-  <div class="mpWrap">
-    <div class="mpTit">👥 Multijugador en Vivo</div>
-    <div class="minf">
-      <b>Host:</b> Selecciona un mundo → comparte tu código.<br>
-      <b>Guest:</b> Ingresa el código → se carga el <b>mismo mundo</b>.<br>
-      Sincronización en tiempo real vía <b style="color:var(--g)">ArcadiaMultiplayer</b> WebSocket.
-    </div>
-    <div class="sb">
-      <div class="sl">📡 TU CÓDIGO DE SESIÓN</div>
-      <div class="scC" id="myCode" onclick="copyCode()">????</div>
-      <div style="font-size:8px;color:#333;text-align:center;margin-top:3px">Toca para copiar</div>
-    </div>
-    <div class="sb">
-      <div class="sl">🔗 UNIRSE A SESIÓN EXISTENTE</div>
-      <div class="jr">
-        <input class="ji" id="joinI" maxlength="4" placeholder="XXXX" oninput="this.value=this.value.toUpperCase();pollLobby()">
-        <button class="bM" style="padding:7px 12px;font-size:11px" onclick="doJoin()">Unir</button>
-      </div>
-    </div>
-    <div class="sb">
-      <div class="sl">🌐 SESIÓN ACTIVA</div>
-      <div class="pll" id="lobbyList"><div style="color:#252525;font-size:9px;text-align:center;padding:6px">Esperando...</div></div>
-      <div class="stb"><div class="std" id="sDot" style="background:#282828"></div><span id="sStat" style="color:#333;font-size:9px">Desconectado</span></div>
-    </div>
-    <div style="display:flex;gap:8px">
-      <button class="bS" style="flex:1" onclick="goIntro()">← Volver</button>
-      <button class="bM" style="flex:2;background:linear-gradient(135deg,#2980b9,#1a6899);box-shadow:0 4px 14px rgba(41,128,185,.42),0 2px 0 #0d3c5a" onclick="startMpGame()">⚡ Jugar Online</button>
-    </div>
-  </div>
-</div>
 
 <!-- ═══ MODS / DLC SCREEN ═══ -->
 <div class="scr" id="sMods" style="display:none">
@@ -694,11 +713,39 @@ canvas{position:absolute;top:0;left:0;image-rendering:pixelated;touch-action:non
   <div class="pauseBox">
     <div class="pauseTit">⏸ Pausa</div>
     <div class="pauseInfo" id="pauseWorldInfo"><b>Mundo:</b> —</div>
-    <div class="pauseCodeBlock" id="pauseMpBlock" style="display:none">
-      <div class="pauseCodeLabel">📡 COMPARTIR MUNDO</div>
-      <div class="pauseCode" id="pauseCode" onclick="copyPauseCode()">????</div>
-      <div class="pauseCodeHint">Toca para copiar · comparte con amigos</div>
+
+    <!-- MULTIPLAYER IN-WORLD PANEL -->
+    <div class="mpInPanel" id="mpInPanel">
+      <div class="mpInTabs">
+        <div class="mpInTab on" id="mpTabInvite" onclick="switchMpTab('invite')">📡 Invitar</div>
+        <div class="mpInTab" id="mpTabJoin" onclick="switchMpTab('join')">🔗 Unirse</div>
+      </div>
+
+      <!-- INVITE TAB -->
+      <div id="mpTabInviteBody">
+        <div class="mpInLabel">CÓDIGO DE ESTE MUNDO</div>
+        <div class="mpInCode" id="mpWorldCode" onclick="copyWorldCode()">????</div>
+        <div class="mpInHint">Toca para copiar · comparte con amigos</div>
+        <div class="mpInPlayers" id="mpPlayerList"><div class="mpInEmpty">Sin jugadores conectados</div></div>
+        <div class="mpInStatus"><div class="mpInDot" id="mpDot"></div><span id="mpStatTxt">Esperando…</span></div>
+      </div>
+
+      <!-- JOIN TAB -->
+      <div id="mpTabJoinBody" style="display:none">
+        <div class="mpInLabel">CÓDIGO DEL ANFITRIÓN</div>
+        <div class="mpInJoinRow">
+          <input class="mpInJoinI" id="mpJoinInput" maxlength="6" placeholder="XXXXXX" oninput="this.value=this.value.toUpperCase()">
+          <button class="mpInJoinBtn" onclick="doJoinWorld()">Unirse</button>
+        </div>
+        <div class="mpInHint" style="margin-top:6px">El progreso de este mundo se guarda al salir</div>
+      </div>
+
+      <!-- MP ACTIVE INFO -->
+      <div id="mpActiveBar" style="display:none">
+        <button class="mpLeaveBtn" onclick="leaveMp()">✕ Abandonar sesión</button>
+      </div>
     </div>
+
     <div class="pauseDlcs" id="pauseDlcInfo"></div>
     <div style="display:flex;flex-direction:column;gap:7px">
       <button class="bM" onclick="resumeGame()" style="font-size:12px">▶ Continuar</button>
@@ -1087,7 +1134,7 @@ const RT={
   BUSH:  {e:'🌿',n:'Arbusto',  loot:{BERRY:3,FIBER:2},    hp:1,on:[T.GRASS,T.MEADOW,T.FOREST],solid:false},
   FLOWER:{e:'🌸',n:'Flor',     loot:{PETAL:3,HERB:2},     hp:1,on:[T.FLOWER,T.MEADOW],solid:false},
   SHROOM:{e:'🍄',n:'Hongo',    loot:{MUSHROOM:3},          hp:1,on:[T.FOREST,T.DENSE,T.MUD],solid:false},
-  CACTUS:{e:'🌵',n:'Cactus',   loot:{FIBER:2,WATERJ:1},   hp:3,on:[T.SAND],solid:true},
+  CACTUS:{e:'🌵',n:'Cactus',   loot:{FIBER:2,WATERJ:1},   hp:3,on:[T.SAND],solid:false},
   CRYSTAL:{e:'💎',n:'Cristal', loot:{CRYSTAL:2,STONE:3},  hp:6,on:[T.MTN,T.SNOW],solid:true},
   SNOWB: {e:'🫐',n:'Bayas',    loot:{BERRY:2,ICE:1},      hp:1,on:[T.SNOW],solid:false},
   REED:  {e:'🌾',n:'Juncos',   loot:{FIBER:3,REED:2},     hp:1,on:[T.SHORE,T.MUD],solid:false},
@@ -1098,7 +1145,13 @@ function placeRes(S){
   for(let y=0;y<MH;y++) for(let x=0;x<MW;x++){
     const tt=wMap[y][x].type, r=nh(x+.4,y+.8,S+400), r2=nh(x+.7,y+.2,S+500);
     for(const[k,d] of Object.entries(RT)){
-      if(d.on.includes(tt)&&r<.24&&r2<.7){wRes.set(`${x},${y}`,{type:k,hp:d.hp,mhp:d.hp,resp:0,anim:Math.random()*Math.PI*2});break;}
+      if(!d.on.includes(tt)) continue;
+      // Solid resources get lower spawn chance to avoid blocking paths
+      const threshold = d.solid ? 0.13 : 0.24;
+      if(r<threshold&&r2<0.7){
+        wRes.set(`${x},${y}`,{type:k,hp:d.hp,mhp:d.hp,resp:0,anim:Math.random()*Math.PI*2});
+        break;
+      }
     }
   }
 }
@@ -1176,6 +1229,10 @@ const MP={
   peers:new Map(),
   COLORS:['#f39c12','#e74c3c','#9b59b6','#1abc9c','#ff7043','#ffd700','#3498db'],
   myColor:'#4ecb71',
+  _pollId:null,
+
+  // Session code is derived from world slot — deterministic, shareable
+  sessionForSlot(slot){ return btoa('wc'+slot).replace(/[^A-Z0-9]/gi,'').slice(0,6).toUpperCase(); },
 
   async init(session,myId,isHost){
     this.session=session; this.myId=myId;
@@ -1185,12 +1242,10 @@ const MP={
     this.sdk=await Arcadia.getMultiplayer();
     await this.sdk.connect(session,{userId:myId,name:P.name,avatar:P.avatar,color:this.myColor});
 
-    // If host: share world seed
     if(isHost){
-      this.sdk.send('world-seed',{seed:wCfg.seed,biome:wCfg.biome,diff:wCfg.diff,name:wCfg.name});
+      this.sdk.send('world-seed',{seed:wCfg.seed,biome:wCfg.biome,diff:wCfg.diff,name:wCfg.name,dlcs:[...DLC.owned]});
     }
 
-    // Listen for player state broadcasts
     this.sdk.on('player-state',({from,data})=>{
       const ex=this.peers.get(from);
       if(!ex){
@@ -1202,21 +1257,28 @@ const MP={
       }
     });
 
-    // Listen for world seed (guest)
     this.sdk.on('world-seed',({from,data})=>{
-      if(from===this.myId) return; // ignore own
-      wCfg.seed=data.seed; wCfg.biome=data.biome; wCfg.diff=data.diff;
-      addMsg('🌍 Mundo sincronizado con host',true);
+      if(from===this.myId) return;
+      wCfg.seed=data.seed; wCfg.biome=data.biome; wCfg.diff=data.diff; wCfg.name=data.name||wCfg.name;
+      // Apply host DLCs temporarily
+      if(data.dlcs) DLC.applyHostPack(data.dlcs);
+      addMsg('🌍 Mundo sincronizado',true);
     });
 
     this.sdk.on('user-left',({from})=>{
       if(this.peers.has(from)){addMsg(`👋 ${this.peers.get(from).name} salió`,true);this.peers.delete(from);}
     });
 
-    // Start publishing
+    this.sdk.on('chat',({from,data})=>{
+      if(from===this.myId)return;
+      appendChatMsg({name:data.name,text:data.text,avatar:data.avatar});
+    });
+
     this._pubId=setInterval(()=>this.publish(),450);
     document.getElementById('mpP').classList.add('on');
-    addMsg(`👥 Online — Sesión ${session}`,true);
+    document.getElementById('chatToggle').classList.add('on');
+    addMsg(`👥 Online · ${session}`,true);
+    this._startLobbyPoll();
   },
 
   publish(){
@@ -1241,36 +1303,53 @@ const MP={
 
   stop(){
     clearInterval(this._pubId);
+    clearInterval(this._pollId);
     this.sdk?.disconnect();
     this.active=false; this.peers.clear();
+    document.getElementById('mpP').classList.remove('on');
+    document.getElementById('chatToggle').classList.remove('on');
+  },
+
+  _startLobbyPoll(){
+    clearInterval(this._pollId);
+    this._pollId=setInterval(()=>this._pollPlayers(),1200);
+  },
+
+  _pollPlayers(){
+    try{
+      const bk=`arc_${this.session}_idx`;
+      const arr=JSON.parse(localStorage.getItem(bk)||'[]');
+      const now=Date.now(), seen=new Map();
+      arr.filter(e=>now-e.ts<8000).forEach(e=>{
+        const m=e.k.match(/^arc_[^_]+_([^_]+)_player-state$/);
+        if(m&&m[1]!==this.myId){
+          try{const pkg=JSON.parse(localStorage.getItem(e.k)||'null');if(pkg)seen.set(m[1],pkg.data);}catch(_){}
+        }
+      });
+      // Update pause panel if open
+      this._renderPausePanel(seen);
+    }catch(_){}
+  },
+
+  _renderPausePanel(seen){
+    const list=document.getElementById('mpPlayerList');if(!list)return;
+    if(!seen||!seen.size){
+      list.innerHTML='<div class="mpInEmpty">Sin jugadores conectados</div>';
+      const dot=document.getElementById('mpDot');if(dot)dot.classList.remove('on');
+      const st=document.getElementById('mpStatTxt');if(st)st.textContent='Esperando…';
+    } else {
+      list.innerHTML=[...seen.entries()].map(([id,d])=>
+        `<div class="mpInPeer"><div class="mpInPeerDot" style="background:${d?.color||'#4ecb71'}"></div><span>${d?.avatar||'🧑'} ${d?.name||id.slice(0,10)}</span><span style="margin-left:auto;font-size:7px;color:#2a4a5a">Lv${d?.level||1}</span></div>`
+      ).join('');
+      const dot=document.getElementById('mpDot');if(dot)dot.classList.add('on');
+      const st=document.getElementById('mpStatTxt');if(st)st.textContent=`${seen.size} jugador${seen.size>1?'es':''} online`;
+    }
+    const bar=document.getElementById('mpActiveBar');
+    if(bar)bar.style.display=this.active?'block':'none';
   }
 };
 
-let mySession=Math.random().toString(36).slice(2,6).toUpperCase();
 let myUserId='p_'+Math.random().toString(36).slice(2,10);
-let lobbyPId=null;
-
-function pollLobby(){
-  const code=document.getElementById('joinI').value.trim().toUpperCase()||mySession;
-  try{
-    const bk=`arc_${code}_idx`;
-    const arr=JSON.parse(localStorage.getItem(bk)||'[]');
-    const now=Date.now(), seen=new Set();
-    // Find unique player IDs from player-state entries
-    arr.filter(e=>now-e.ts<6000).forEach(e=>{
-      // key format: arc_{room}_{userId}_player-state
-      const m=e.k.match(/^arc_[^_]+_([^_]+(?:_[^_]+)*)_player-state$/);
-      if(m) seen.add(m[1]);
-    });
-    const list=document.getElementById('lobbyList');
-    if(!seen.size){list.innerHTML='<div style="color:#222;font-size:9px;text-align:center;padding:6px">Sin jugadores aún...</div>';}
-    else{list.innerHTML=[...seen].map(id=>`<div class="mpe"><div class="mpd2" style="background:var(--g)"></div><span>${id.slice(0,14)}</span></div>`).join('');}
-    const sDot=document.getElementById('sDot');
-    sDot.style.background=seen.size?'#4ecb71':'#555';
-    document.getElementById('sStat').style.color=seen.size?'#4ecb71':'#555';
-    document.getElementById('sStat').textContent=seen.size?seen.size+' online':'Sin jugadores';
-  }catch(e){}
-}
 
 // ═══════════════════════════════════════════════════════
 //  AUDIO ENGINE
@@ -1484,7 +1563,13 @@ const DLC_CATALOG=[
 const DLC={
   owned:new Set(JSON.parse(localStorage.getItem('wc_dlc_owned')||'[]')),
   ownedProducts:[],  // from Arcadia login user.ownedProducts
-  has(id){return this.owned.has(id)||this.ownedProducts.includes(id);},
+  has(id){
+    const owned=this.owned.has(id)||this.ownedProducts.includes(id);
+    if(!owned) return false;
+    // Respect toggle: if DLC_ACTIVE has been initialized, check it
+    if(typeof DLC_ACTIVE!=='undefined'&&DLC_ACTIVE.size>0) return DLC_ACTIVE.has(id);
+    return true;
+  },
   initFromUser(user){
     this.ownedProducts = user.ownedProducts||[];
     // Auto-install DLCs already owned in Arcadia
@@ -1509,6 +1594,9 @@ const DLC={
   _install(id,d){
     this.owned.add(id);
     localStorage.setItem('wc_dlc_owned',JSON.stringify([...this.owned]));
+    // Auto-enable on install
+    if(typeof DLC_ACTIVE!=='undefined') DLC_ACTIVE.add(id);
+    localStorage.setItem('wc_dlc_active',JSON.stringify([...(typeof DLC_ACTIVE!=='undefined'?DLC_ACTIVE:[])]));
     refreshDlcEffects();
     renderDlcGrid();
     toast(`🧩 ¡${d.icon} ${d.name} instalado!`);
@@ -1763,25 +1851,57 @@ function refreshDlcEffects(){
   }
 }
 
+// Active (enabled) DLC set — owned DLCs can be toggled on/off
+const DLC_ACTIVE = new Set(JSON.parse(localStorage.getItem('wc_dlc_active')||'null') || []);
+
 function renderDlcGrid(){
   const grid=document.getElementById('dlcGrid');if(!grid)return;
   grid.innerHTML='';
   for(const d of DLC_CATALOG){
     const owned=DLC.has(d.id);
+    const active=owned && (DLC_ACTIVE.size===0 ? true : DLC_ACTIVE.has(d.id));
+    // If DLC_ACTIVE is empty (first time), all owned are active by default
+    const isOn = owned && DLC_ACTIVE.has(d.id);
+
     const card=document.createElement('div');
-    card.className='dlcCard'+(owned?' owned':'');
+    card.className='dlcCard'+(owned?' owned':'')+(owned&&!isOn?' disabled':'');
     let badge=d.tag?`<div class="dlcBadge${d.tag==='Nuevo'?' new':''}">${d.tag}</div>`:'';
+
     card.innerHTML=`${badge}
       <div class="dlcIcon">${d.icon}</div>
       <div class="dlcName">${d.name}</div>
       <div class="dlcDesc">${d.desc}</div>
-      <button class="dlcBuy${owned?' owned':''}" onclick="DLC.buy('${d.id}')" ${owned?'disabled':''}>
-        ${owned?'✔ Instalado':'🔓 Desbloquear'}
-      </button>`;
+      ${owned
+        ? `<div class="dlcToggle">
+             <span class="dlcToggleLabel${isOn?' on':''}">${isOn?'Activo':'Inactivo'}</span>
+             <div class="dlcToggleTrack${isOn?' on':''}" onclick="toggleDlc('${d.id}',this)">
+               <div class="dlcToggleKnob"></div>
+             </div>
+           </div>`
+        : `<button class="dlcBuy" onclick="DLC.buy('${d.id}')">🔓 Desbloquear</button>`
+      }`;
     grid.appendChild(card);
   }
 }
-function goMods(){show('sMods');renderDlcGrid();}
+
+function toggleDlc(id, trackEl){
+  if(!DLC.has(id)) return;
+  const wasOn=DLC_ACTIVE.has(id);
+  if(wasOn){ DLC_ACTIVE.delete(id); } else { DLC_ACTIVE.add(id); }
+  localStorage.setItem('wc_dlc_active', JSON.stringify([...DLC_ACTIVE]));
+  refreshDlcEffects();
+  renderDlcGrid();
+  toast((wasOn?'⏸ ':'▶ ')+(DLC_CATALOG.find(d=>d.id===id)?.name||id)+' '+(wasOn?'desactivado':'activado'));
+}
+
+function goMods(){show('sMods');
+  // Init DLC_ACTIVE with all owned if never set
+  if(DLC_ACTIVE.size===0){
+    DLC.owned.forEach(id=>DLC_ACTIVE.add(id));
+    localStorage.setItem('wc_dlc_active',JSON.stringify([...DLC_ACTIVE]));
+  }
+  renderDlcGrid();
+}
 
 // ═══════════════════════════════════════════════════════
 //  SKIN CUSTOMIZER
@@ -1848,16 +1968,36 @@ function openPause(){
   const BN2={0:'Océano',1:'Agua',2:'Orilla',3:'Playa',4:'Llanura',5:'Pradera',6:'Bosque',7:'Bosque Denso',8:'Pantano',9:'Piedras',10:'Montaña',11:'Nieve',12:'Florecido',13:'Ruinas',14:'Aldea'};
   const tx=Math.floor(P.wx/TILE),ty=Math.floor(P.wy/TILE);
   document.getElementById('pauseWorldInfo').innerHTML=`<b>Mundo:</b> ${wCfg.name} · <b>Día:</b> ${P.day}<br><b>Nivel:</b> ${P.level} · <b>Bioma:</b> ${BN2[wMap[ty]?.[tx]?.type]||'?'}`;
-  const mpb=document.getElementById('pauseMpBlock');
-  if(MP.active){mpb.style.display='block';document.getElementById('pauseCode').textContent=MP.session||mySession;}
-  else mpb.style.display='none';
+
+  // Setup MP panel
+  const session = activeSlot!==null ? MP.sessionForSlot(activeSlot) : '------';
+  const codeEl=document.getElementById('mpWorldCode');
+  if(codeEl) codeEl.textContent=session;
+
+  // If already in session, show active bar
+  document.getElementById('mpActiveBar').style.display=MP.active?'block':'none';
+  if(!MP.active) MP._renderPausePanel(new Map());
+  else MP._pollPlayers();
+
+  // Host button — only shown when not active yet
+  let hostBtnEl=document.getElementById('mpHostBtn');
+  if(!hostBtnEl){
+    hostBtnEl=document.createElement('button');
+    hostBtnEl.id='mpHostBtn';
+    hostBtnEl.className='mpInJoinBtn';
+    hostBtnEl.style.cssText='width:100%;margin-top:6px;font-size:11px;padding:7px';
+    hostBtnEl.textContent='📡 Abrir mundo a amigos';
+    hostBtnEl.onclick=hostCurrentWorld;
+    document.getElementById('mpTabInviteBody').appendChild(hostBtnEl);
+  }
+  hostBtnEl.style.display=MP.active?'none':'block';
+
   const owned=DLC_CATALOG.filter(d=>DLC.has(d.id)).map(d=>d.icon);
-  document.getElementById('pauseDlcInfo').textContent=owned.length?'DLCs: '+owned.join(' '):'Sin DLCs';
+  document.getElementById('pauseDlcInfo').textContent=owned.length?'Expansiones: '+owned.join(' '):'Sin expansiones activas';
   document.getElementById('pauseMenu').classList.add('on');
 }
 function resumeGame(){paused=false;document.getElementById('pauseMenu').classList.remove('on');if(!running){running=true;last=performance.now();requestAnimationFrame(loop);}}
 function closePause(){document.getElementById('pauseMenu').classList.remove('on');paused=false;}
-function copyPauseCode(){const c=document.getElementById('pauseCode').textContent;navigator.clipboard?.writeText(c).catch(()=>{});toast('📋 '+c);}
 function quitToMenu(){saveCurrentWorld();running=false;paused=false;MP.stop();document.getElementById('pauseMenu').classList.remove('on');document.getElementById('gUI').style.display='none';document.getElementById('mmap').style.display='none';goIntro();}
 window.addEventListener('keydown',e=>{if(e.code==='Escape'&&document.getElementById('gUI').style.display!=='none'){if(paused)resumeGame();else openPause();}},true);
 
@@ -2051,8 +2191,9 @@ function canWalk(wx2,wy2){
   if(tx<0||ty<0||tx>=MW||ty>=MH)return false;
   const tt=wMap[ty]?.[tx]?.type;
   if((tt===T.DEEP||tt===T.WATER)&&!P.raft)return false;
+  // Only block on solid resources that are fully intact (hp===mhp) and not in respawn
   const res=wRes.get(`${tx},${ty}`);
-  if(res&&res.resp<=0&&RT[res.type]?.solid)return false;
+  if(res&&res.resp<=0&&res.hp===res.mhp&&RT[res.type]?.solid)return false;
   return true;
 }
 
@@ -2242,14 +2383,61 @@ function showTip(id,el){const it=IT[id],tt=document.getElementById('ttp');docume
 // ═══════════════════════════════════════════════════════
 //  SCREEN NAVIGATION
 // ═══════════════════════════════════════════════════════
-function show(id){['sI','sWS','sW','sMp','sMods'].forEach(s=>{const el=document.getElementById(s);if(el)el.style.display=s===id?'flex':'none';});}
+function show(id){['sI','sWS','sW','sMods'].forEach(s=>{const el=document.getElementById(s);if(el)el.style.display=s===id?'flex':'none';});}
 function goIntro(){show('sI');document.getElementById('gUI').style.display='none';document.getElementById('mmap').style.display='none';}
 function goWorldSelect(){show('sWS');renderWorldSelect();}
 function goCreateWorld(){show('sW');drawPv();}
-function goMp(){show('sMp');document.getElementById('myCode').textContent=mySession;clearInterval(lobbyPId);lobbyPId=setInterval(pollLobby,800);}
 function pickB(el){document.querySelectorAll('.bc').forEach(e=>e.classList.remove('on'));el.classList.add('on');wCfg.biome=el.dataset.b;drawPv();}
-function doJoin(){const c=document.getElementById('joinI').value.trim().toUpperCase();if(c.length!==4){toast('⚠ Código de 4 letras');return;}mySession=c;document.getElementById('myCode').textContent=mySession;toast('🔗 Unido: '+c);clearInterval(lobbyPId);lobbyPId=setInterval(pollLobby,800);pollLobby();}
-function copyCode(){navigator.clipboard?.writeText(mySession).catch(()=>{});toast('📋 Copiado: '+mySession);}
+
+// ── MP tab switch ──
+function switchMpTab(tab){
+  document.getElementById('mpTabInvite').classList.toggle('on',tab==='invite');
+  document.getElementById('mpTabJoin').classList.toggle('on',tab==='join');
+  document.getElementById('mpTabInviteBody').style.display=tab==='invite'?'':'none';
+  document.getElementById('mpTabJoinBody').style.display=tab==='join'?'':'none';
+}
+
+// ── Copy world session code ──
+function copyWorldCode(){
+  const code=document.getElementById('mpWorldCode').textContent;
+  navigator.clipboard?.writeText(code).catch(()=>{});
+  toast('📋 Código copiado: '+code);
+}
+
+// ── Join another world by code ──
+async function doJoinWorld(){
+  const code=document.getElementById('mpJoinInput').value.trim().toUpperCase();
+  if(code.length<4){toast('⚠ Código inválido');return;}
+  if(MP.active){MP.stop();}
+  await MP.init(code, myUserId, false);
+  // Guest: load a fresh world that will be overridden by host seed
+  wCfg.seed=Math.random().toString(36).slice(2,10);
+  wCfg.biome='balanced';wCfg.name='Online';
+  Object.assign(P,{wx:100*TILE,wy:100*TILE,vx:0,vy:0,hp:100,mhp:100,food:100,energy:100,xp:0,level:1,xpN:100,inv:{},hbar:Array(8).fill(null),slot:0,torch:false,lantern:false,raft:false,day:1,time:360});
+  resumeGame();
+  beginLoad(true);
+}
+
+// ── Start hosting the current world ──
+async function hostCurrentWorld(){
+  if(activeSlot===null){toast('⚠ Guarda el mundo primero');return;}
+  if(MP.active){toast('👥 Ya estás en sesión');return;}
+  const session=MP.sessionForSlot(activeSlot);
+  await MP.init(session, myUserId, true);
+  toast('👥 Sesión iniciada: '+session);
+}
+
+// ── Leave MP session ──
+function leaveMp(){
+  MP.stop();
+  toast('👋 Sesión abandonada');
+  // Refresh pause panel
+  MP._renderPausePanel(new Map());
+  document.getElementById('mpActiveBar').style.display='none';
+}
+
+// ── Copy pause code (legacy kept for safety) ──
+function copyPauseCode(){copyWorldCode();}
 
 function doCreateWorld(){
   const nameVal=document.getElementById('wNameI').value.trim()||'Mundo '+(activeSlot+1);
@@ -2260,20 +2448,6 @@ function doCreateWorld(){
   // Reset player for new world
   Object.assign(P,{wx:100*TILE,wy:100*TILE,vx:0,vy:0,hp:100,mhp:100,food:100,energy:100,xp:0,level:1,xpN:100,inv:{},hbar:Array(8).fill(null),slot:0,torch:false,lantern:false,raft:false,day:1,time:360});
   beginLoad(false);
-}
-
-async function startMpGame(){
-  clearInterval(lobbyPId);
-  const joinCode=document.getElementById('joinI').value.trim().toUpperCase();
-  if(joinCode.length===4)mySession=joinCode;
-  const isHost=joinCode.length!==4;
-  if(isHost){
-    // Host creates fresh world
-    wCfg.seed=Math.random().toString(36).slice(2,10);wCfg.biome='balanced';wCfg.name='MP World';
-    Object.assign(P,{wx:100*TILE,wy:100*TILE,vx:0,vy:0,hp:100,mhp:100,food:100,energy:100,xp:0,level:1,xpN:100,inv:{},hbar:Array(8).fill(null),slot:0,torch:false,lantern:false,raft:false,day:1,time:360});
-  }
-  await MP.init(mySession,myUserId,isHost);
-  beginLoad(true);
 }
 
 function beginLoad(mp){
@@ -2349,14 +2523,15 @@ setTimeout(()=>drawPv(),200);
 
 // Expose all onclick-called functions to window (required for type=module scope)
 Object.assign(window,{
-  goIntro,goWorldSelect,goCreateWorld,goMods,goMp,
-  doCreateWorld,doJoin,pickB,copyCode,
-  startMpGame,playWorld,deleteWorld,
-  openPause,closePause,resumeGame,quitToMenu,copyPauseCode,
+  goIntro,goWorldSelect,goCreateWorld,goMods,
+  doCreateWorld,pickB,
+  playWorld,deleteWorld,
+  openPause,closePause,resumeGame,quitToMenu,copyPauseCode,copyWorldCode,
+  switchMpTab,doJoinWorld,hostCurrentWorld,leaveMp,
   openSkin,closeSkin,saveSkin,openSkinFromPause,
   toggleAudio,toggleChat,sendChat,
   toggleCraft,toggleInv,
-  saveCurrentWorld,renderDlcGrid,DLC,Arcadia:window.Arcadia
+  saveCurrentWorld,renderDlcGrid,toggleDlc,DLC,Arcadia:window.Arcadia
 });
 </script>
 </body>
