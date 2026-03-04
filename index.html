@@ -1,0 +1,1716 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>WildCraft — Naturaleza & Aventura</title>
+<style>
+/* ===== FONTS ===== */
+@import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap');
+
+:root {
+  --c-green: #4ecb71;
+  --c-dark-green: #2a7a45;
+  --c-forest: #1a4a2e;
+  --c-earth: #8b5e3c;
+  --c-sky: #87ceeb;
+  --c-gold: #ffd700;
+  --c-red: #ff4757;
+  --c-blue: #3498db;
+  --c-orange: #ff7043;
+  --c-purple: #9b59b6;
+  --ui-bg: rgba(10,25,15,0.95);
+  --ui-border: #4ecb71;
+  --radius: 16px;
+  --tile: 40px;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+
+body {
+  background: #0a1a0e;
+  font-family: 'Nunito', sans-serif;
+  overflow: hidden;
+  width: 100vw; height: 100dvh;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  touch-action: none;
+}
+
+/* ===== SCREEN WRAPPER ===== */
+#gameWrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  max-width: 100vw;
+  max-height: 100dvh;
+  overflow: hidden;
+  background: #0a1a0e;
+}
+
+canvas { position:absolute; top:0; left:0; display:block; image-rendering: pixelated; }
+#bgCanvas { z-index:0; }
+#worldCanvas { z-index:1; }
+#entityCanvas { z-index:2; }
+#lightCanvas { z-index:3; pointer-events:none; }
+#fxCanvas { z-index:4; pointer-events:none; }
+
+/* ===== SCREENS ===== */
+.screen {
+  position: absolute; inset:0; z-index:50;
+  display: flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  font-family: 'Nunito', sans-serif;
+}
+
+/* ===== INTRO SCREEN ===== */
+#introScreen {
+  background: linear-gradient(160deg, #0d2b14 0%, #1a4a2e 40%, #0d2b14 100%);
+  overflow:hidden;
+}
+
+.intro-leaves {
+  position:absolute; inset:0; pointer-events:none;
+  overflow:hidden;
+}
+.leaf {
+  position:absolute;
+  font-size:2rem;
+  animation: leafFall linear infinite;
+  opacity:0.6;
+}
+@keyframes leafFall {
+  0%   { transform:translateY(-60px) rotate(0deg); opacity:0; }
+  10%  { opacity:0.6; }
+  90%  { opacity:0.6; }
+  100% { transform:translateY(110vh) rotate(720deg); opacity:0; }
+}
+
+.intro-logo {
+  position:relative; z-index:2; text-align:center;
+  animation: logoIn 1s cubic-bezier(0.34,1.56,0.64,1) forwards;
+  opacity:0; transform: scale(0.5) translateY(30px);
+}
+@keyframes logoIn {
+  to { opacity:1; transform: scale(1) translateY(0); }
+}
+
+.logo-icon {
+  font-size: clamp(60px,12vw,100px);
+  display:block;
+  filter: drop-shadow(0 0 30px rgba(78,203,113,0.6));
+  animation: floatLogo 3s ease-in-out infinite;
+}
+@keyframes floatLogo { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
+
+.logo-title {
+  font-family: 'Fredoka One', cursive;
+  font-size: clamp(42px,10vw,80px);
+  background: linear-gradient(135deg, #4ecb71, #ffd700, #4ecb71);
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmer 3s ease-in-out infinite;
+  text-shadow: none;
+  line-height:1;
+}
+@keyframes shimmer { 0%,100%{background-position:0% 50%} 50%{background-position:100% 50%} }
+
+.logo-sub {
+  font-size: clamp(14px,3vw,20px);
+  color: #a8e6be;
+  font-weight: 600;
+  letter-spacing: 3px;
+  margin-top: 4px;
+  text-transform: uppercase;
+}
+
+.intro-btns {
+  display:flex; flex-direction:column; gap:12px;
+  width: min(320px, 90vw);
+  margin-top: 36px;
+  z-index:2;
+  animation: fadeUp 0.8s 0.5s cubic-bezier(0.34,1.56,0.64,1) forwards;
+  opacity:0; transform:translateY(30px);
+}
+@keyframes fadeUp { to{opacity:1;transform:translateY(0)} }
+
+.btn-main {
+  font-family:'Fredoka One',cursive;
+  font-size: clamp(18px,4vw,22px);
+  color:#0a1a0e;
+  background: linear-gradient(135deg, #4ecb71, #2ecc71);
+  border:none; border-radius:50px;
+  padding:14px 32px;
+  cursor:pointer;
+  box-shadow: 0 6px 20px rgba(78,203,113,0.4), 0 2px 0 #1a7a40;
+  transition: all 0.15s;
+  display:flex; align-items:center; justify-content:center; gap:10px;
+  letter-spacing:0.5px;
+}
+.btn-main:hover { transform:translateY(-3px); box-shadow:0 10px 28px rgba(78,203,113,0.5),0 2px 0 #1a7a40; }
+.btn-main:active { transform:translateY(2px); box-shadow:0 2px 8px rgba(78,203,113,0.3),0 1px 0 #1a7a40; }
+.btn-secondary {
+  font-family:'Fredoka One',cursive;
+  font-size:clamp(15px,3.5vw,18px);
+  color:#a8e6be;
+  background: rgba(78,203,113,0.12);
+  border:2px solid rgba(78,203,113,0.3);
+  border-radius:50px;
+  padding:11px 28px;
+  cursor:pointer;
+  transition:all 0.15s;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+}
+.btn-secondary:hover{background:rgba(78,203,113,0.22);border-color:rgba(78,203,113,0.6);}
+.btn-secondary:active{transform:scale(0.97);}
+
+.intro-controls {
+  margin-top:20px; color:#4ecb71; font-size:clamp(11px,2.5vw,13px);
+  opacity:0.7; text-align:center; z-index:2;
+  line-height:2.2;
+  animation: fadeUp 0.8s 0.8s forwards; opacity:0;transform:translateY(20px);
+}
+
+/* ===== WORLD CREATION SCREEN ===== */
+#worldScreen {
+  background: linear-gradient(160deg, #0d2b14, #0a1a0e);
+  padding: 20px;
+  overflow-y:auto;
+}
+.world-panel {
+  width: min(500px,95vw);
+  background:rgba(78,203,113,0.07);
+  border:2px solid rgba(78,203,113,0.25);
+  border-radius:var(--radius);
+  padding: 24px;
+  animation: fadeUp 0.5s forwards;
+}
+.world-title {
+  font-family:'Fredoka One',cursive;
+  font-size:clamp(22px,5vw,30px);
+  color:#4ecb71; margin-bottom:20px; text-align:center;
+}
+.world-option {
+  margin-bottom:16px;
+}
+.world-option label {
+  display:block; color:#a8e6be; font-size:14px; font-weight:700;
+  margin-bottom:6px; letter-spacing:0.5px;
+}
+.world-option input[type=range] {
+  width:100%; accent-color:#4ecb71; cursor:pointer;
+}
+.world-biome-grid {
+  display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:6px;
+}
+.biome-card {
+  border:2px solid rgba(78,203,113,0.2);
+  border-radius:12px; padding:10px 6px;
+  text-align:center; cursor:pointer;
+  transition:all 0.15s; background:rgba(0,0,0,0.3);
+  font-size:12px; color:#a8e6be;
+}
+.biome-card:hover,.biome-card.active { border-color:#4ecb71; background:rgba(78,203,113,0.15); }
+.biome-card span { display:block; font-size:24px; margin-bottom:4px; }
+.seed-input {
+  width:100%; background:rgba(0,0,0,0.4); border:2px solid rgba(78,203,113,0.3);
+  border-radius:10px; padding:10px 14px; color:#fff; font-family:'Nunito',sans-serif;
+  font-size:14px; outline:none;
+}
+.seed-input:focus { border-color:#4ecb71; }
+.world-preview {
+  width:100%; height:100px; border-radius:12px; overflow:hidden;
+  margin:12px 0; border:2px solid rgba(78,203,113,0.2);
+  display:flex; align-items:center; justify-content:center;
+  background:#0a1a0e; position:relative;
+}
+#previewCanvas { width:100%; height:100%; }
+
+/* ===== IN-GAME UI ===== */
+#gameUI {
+  position:absolute; inset:0; z-index:20;
+  pointer-events:none;
+  font-family:'Nunito',sans-serif;
+}
+
+/* Top HUD */
+#topHud {
+  position:absolute; top:0; left:0; right:0;
+  display:flex; align-items:flex-start; justify-content:space-between;
+  padding: clamp(6px,2vw,12px);
+  gap:8px;
+  pointer-events:all;
+}
+
+.hud-card {
+  background: linear-gradient(135deg, rgba(10,25,15,0.92), rgba(20,40,25,0.92));
+  border:2px solid rgba(78,203,113,0.35);
+  border-radius:var(--radius);
+  padding:8px 12px;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05);
+  animation: hudIn 0.5s cubic-bezier(0.34,1.56,0.64,1) forwards;
+}
+@keyframes hudIn { from{opacity:0;transform:translateY(-20px)} to{opacity:1;transform:translateY(0)} }
+
+.stat-row { display:flex; align-items:center; gap:6px; margin-bottom:5px; }
+.stat-row:last-child { margin-bottom:0; }
+.stat-icon { font-size:12px; width:16px; }
+.bar-outer {
+  height:8px; background:rgba(0,0,0,0.5); border-radius:20px;
+  border:1px solid rgba(255,255,255,0.1);
+  width: clamp(70px,15vw,110px); overflow:hidden;
+}
+.bar-inner { height:100%; border-radius:20px; transition:width 0.4s ease; }
+.bar-hp   { background:linear-gradient(90deg,#e74c3c,#ff6b6b); }
+.bar-food { background:linear-gradient(90deg,#e67e22,#f39c12); }
+.bar-energy{ background:linear-gradient(90deg,#3498db,#74b9ff); }
+.bar-val { font-size:10px; color:#aaa; min-width:28px; text-align:right; font-weight:700; }
+
+.clock-card { text-align:center; min-width:90px; }
+.clock-emoji { font-size:22px; animation:clockPulse 2s ease-in-out infinite; }
+@keyframes clockPulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.1)} }
+.clock-time { font-family:'Fredoka One',cursive; font-size:clamp(14px,3vw,18px); color:#ffd700; }
+.clock-day { font-size:10px; color:#a8e6be; font-weight:700; }
+.biome-badge {
+  font-size:10px; background:rgba(78,203,113,0.2); border-radius:20px;
+  padding:2px 8px; color:#4ecb71; margin-top:4px; font-weight:700;
+}
+
+.profile-card { display:flex; align-items:center; gap:8px; }
+.avatar-ring {
+  width:38px; height:38px; border-radius:50%;
+  border:3px solid #4ecb71;
+  background:linear-gradient(135deg,#2a7a45,#1a4a2e);
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;
+  box-shadow: 0 0 12px rgba(78,203,113,0.4);
+  animation: avatarGlow 2s ease-in-out infinite;
+}
+@keyframes avatarGlow { 0%,100%{box-shadow:0 0 12px rgba(78,203,113,0.4)} 50%{box-shadow:0 0 20px rgba(78,203,113,0.7)} }
+.profile-info { }
+.profile-name { font-size:12px; color:#fff; font-weight:800; }
+.profile-xp {
+  font-size:10px; color:#ffd700; font-weight:700;
+  display:flex;align-items:center;gap:4px;
+}
+.xp-bar-outer { width:60px; height:4px; background:rgba(0,0,0,0.5); border-radius:20px; }
+.xp-bar-inner { height:100%; background:linear-gradient(90deg,#ffd700,#ffaa00); border-radius:20px; transition:width 0.5s; }
+
+/* Hotbar */
+#hotbar {
+  position:absolute; bottom:0; left:50%; transform:translateX(-50%);
+  display:flex; gap:4px; padding:8px;
+  background:linear-gradient(135deg, rgba(10,25,15,0.95), rgba(20,40,25,0.95));
+  border:2px solid rgba(78,203,113,0.35); border-radius:var(--radius) var(--radius) 0 0;
+  backdrop-filter:blur(8px);
+  pointer-events:all;
+  animation: hudIn2 0.5s 0.2s cubic-bezier(0.34,1.56,0.64,1) forwards;
+  opacity:0;
+}
+@keyframes hudIn2 { from{opacity:0;transform:translateX(-50%) translateY(20px)} to{opacity:1;transform:translateX(-50%) translateY(0)} }
+
+.hslot {
+  width: clamp(42px,9vw,52px); height: clamp(42px,9vw,52px);
+  background:rgba(0,0,0,0.5); border:2px solid rgba(78,203,113,0.25);
+  border-radius:10px; display:flex; align-items:center; justify-content:center;
+  cursor:pointer; position:relative; font-size:clamp(18px,4vw,22px);
+  transition:all 0.15s;
+}
+.hslot:hover { border-color:#4ecb71; background:rgba(78,203,113,0.15); transform:translateY(-3px); }
+.hslot.active {
+  border-color:#ffd700; background:rgba(255,215,0,0.15);
+  box-shadow:0 0 12px rgba(255,215,0,0.3);
+  transform:translateY(-4px);
+}
+.hslot-num {
+  position:absolute; top:2px; left:4px; font-size:8px; color:#555; font-weight:700;
+}
+.hslot-count {
+  position:absolute; bottom:1px; right:3px; font-size:9px; color:#ffd700; font-weight:800;
+  text-shadow:0 1px 2px #000;
+}
+
+/* Craft Panel */
+#craftPanel {
+  position:absolute; right:8px; top:50%; transform:translateY(-50%);
+  width:min(170px,45vw);
+  background:linear-gradient(135deg,rgba(10,25,15,0.97),rgba(20,40,25,0.97));
+  border:2px solid rgba(78,203,113,0.4); border-radius:var(--radius);
+  padding:10px; pointer-events:all; backdrop-filter:blur(10px);
+  display:none; box-shadow:0 8px 32px rgba(0,0,0,0.5);
+  animation: slideIn 0.25s cubic-bezier(0.34,1.56,0.64,1);
+}
+@keyframes slideIn { from{opacity:0;transform:translateY(-50%) translateX(20px)} to{opacity:1;transform:translateY(-50%) translateX(0)} }
+#craftPanel.open { display:block; }
+.craft-title {
+  font-family:'Fredoka One',cursive; font-size:14px; color:#ffd700;
+  margin-bottom:8px; text-align:center; border-bottom:1px solid rgba(78,203,113,0.3);
+  padding-bottom:6px;
+}
+.citem {
+  padding:7px 8px; border-radius:10px; cursor:pointer;
+  border:1px solid transparent; margin-bottom:4px;
+  transition:all 0.15s; font-size:11px;
+  display:flex; flex-direction:column; gap:2px;
+}
+.citem:hover { background:rgba(78,203,113,0.15); border-color:rgba(78,203,113,0.4); }
+.citem.can { color:#7fff9a; }
+.citem.cant { color:#444; cursor:not-allowed; }
+.citem-name { font-weight:800; }
+.citem-cost { font-size:9px; color:#666; }
+.citem.can .citem-cost { color:#4ecb71; }
+
+/* Message Log */
+#msgLog {
+  position:absolute; left:8px; bottom: calc(clamp(58px,12vw,68px) + 16px);
+  width: min(220px, 50vw);
+  pointer-events:none;
+  display:flex; flex-direction:column; gap:3px;
+}
+.msg {
+  background:rgba(10,25,15,0.9); color:#a8e6be;
+  font-size:clamp(11px,2.5vw,13px); font-weight:700;
+  padding:5px 10px; border-radius:20px;
+  border-left:3px solid #4ecb71;
+  backdrop-filter:blur(4px);
+  animation:msgAnim 4s forwards;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+@keyframes msgAnim { 0%{opacity:0;transform:translateX(-10px)} 8%{opacity:1;transform:translateX(0)} 75%{opacity:1} 100%{opacity:0} }
+
+/* Multiplayer panel */
+#mpPanel {
+  position:absolute; right:8px; bottom: calc(clamp(58px,12vw,68px) + 16px);
+  width:min(150px,40vw);
+  background:rgba(10,25,15,0.9); border:2px solid rgba(78,203,113,0.3);
+  border-radius:var(--radius); padding:8px;
+  pointer-events:all; backdrop-filter:blur(8px);
+  display:none;
+}
+#mpPanel.show { display:block; }
+.mp-title { font-family:'Fredoka One',cursive; font-size:12px; color:#4ecb71; margin-bottom:6px; }
+.mp-player {
+  display:flex;align-items:center;gap:6px;margin-bottom:4px;
+  font-size:11px; color:#a8e6be; font-weight:700;
+}
+.mp-dot { width:8px;height:8px;border-radius:50%;background:#4ecb71;animation:mpPulse 2s infinite; }
+@keyframes mpPulse{0%,100%{opacity:1}50%{opacity:0.4}}
+
+/* Tooltip */
+#tooltip {
+  position:absolute; z-index:30; pointer-events:none;
+  background:rgba(10,25,15,0.97); border:2px solid rgba(78,203,113,0.4);
+  border-radius:12px; padding:10px 14px; display:none;
+  box-shadow:0 8px 24px rgba(0,0,0,0.6); backdrop-filter:blur(8px);
+  max-width:180px;
+}
+.tt-name { font-family:'Fredoka One',cursive; font-size:14px; color:#4ecb71; }
+.tt-desc { font-size:11px; color:#a8e6be; margin-top:3px; line-height:1.5; }
+.tt-use  { font-size:10px; color:#ffd700; margin-top:4px; font-weight:700; }
+
+/* Mobile controls */
+#mobileCtrl {
+  position:absolute; bottom: calc(clamp(58px,12vw,68px) + 12px); left:12px;
+  display:none; pointer-events:all;
+}
+@media (pointer:coarse) { #mobileCtrl { display:block; } }
+.dpad {
+  display:grid; grid-template-columns:repeat(3,44px); grid-template-rows:repeat(3,44px);
+  gap:3px;
+}
+.dpad-btn {
+  background:rgba(78,203,113,0.15); border:2px solid rgba(78,203,113,0.3);
+  border-radius:10px; display:flex;align-items:center;justify-content:center;
+  font-size:18px; color:#4ecb71; cursor:pointer;
+  user-select:none; -webkit-user-select:none;
+  transition:background 0.1s;
+  touch-action:none;
+}
+.dpad-btn:active,.dpad-btn.pressed { background:rgba(78,203,113,0.4); border-color:#4ecb71; }
+.dpad-center { background:transparent;border:none; pointer-events:none; }
+
+/* Action buttons mobile */
+#mobileActions {
+  position:absolute; bottom: calc(clamp(58px,12vw,68px) + 12px); right:12px;
+  display:none; pointer-events:all; flex-direction:column; gap:8px;
+}
+@media (pointer:coarse) { #mobileActions { display:flex; } }
+.action-btn {
+  width:50px; height:50px; border-radius:50%;
+  background:rgba(78,203,113,0.15); border:2px solid rgba(78,203,113,0.3);
+  display:flex;align-items:center;justify-content:center; font-size:18px; cursor:pointer;
+  user-select:none; -webkit-user-select:none; touch-action:none;
+  transition:all 0.1s;
+  font-family:'Fredoka One',cursive; color:#4ecb71; font-size:13px;
+}
+.action-btn:active { background:rgba(78,203,113,0.4); transform:scale(0.92); }
+
+/* FX Particles CSS */
+.fx-float {
+  position:absolute; pointer-events:none; z-index:25;
+  font-size:18px; animation:fxFloat 1.5s ease-out forwards;
+}
+@keyframes fxFloat { from{opacity:1;transform:translateY(0)} to{opacity:0;transform:translateY(-50px)} }
+
+/* Loading bar */
+#loadBar {
+  position:absolute; bottom:0; left:0; height:4px;
+  background:linear-gradient(90deg,#4ecb71,#ffd700,#4ecb71);
+  background-size:200% 100%;
+  animation:loadShimmer 1s linear infinite;
+  transition:width 0.3s;
+  z-index:60;
+}
+@keyframes loadShimmer{0%{background-position:200% 0}100%{background-position:0% 0}}
+</style>
+</head>
+<body>
+<div id="gameWrapper">
+  <canvas id="bgCanvas"></canvas>
+  <canvas id="worldCanvas"></canvas>
+  <canvas id="entityCanvas"></canvas>
+  <canvas id="lightCanvas"></canvas>
+  <canvas id="fxCanvas"></canvas>
+  <div id="loadBar" style="width:0%"></div>
+
+  <!-- ===== INTRO SCREEN ===== -->
+  <div class="screen" id="introScreen">
+    <div class="intro-leaves" id="introLeaves"></div>
+    <div class="intro-logo">
+      <span class="logo-icon">🌿</span>
+      <div class="logo-title">WildCraft</div>
+      <div class="logo-sub">Naturaleza & Aventura</div>
+    </div>
+    <div class="intro-btns">
+      <button class="btn-main" onclick="showWorldCreation()">🌍 Nuevo Mundo</button>
+      <button class="btn-main" style="background:linear-gradient(135deg,#3498db,#2980b9);box-shadow:0 6px 20px rgba(52,152,219,0.4),0 2px 0 #1a5f8a" onclick="loadAndContinue()">📂 Continuar</button>
+      <button class="btn-secondary" onclick="showMultiplayerLobby()">👥 Multijugador</button>
+    </div>
+    <div class="intro-controls">
+      WASD / Flechas · Mover &nbsp;&nbsp; E · Recolectar<br>
+      C · Craftear &nbsp;&nbsp; F · Usar &nbsp;&nbsp; 1–8 · Seleccionar
+    </div>
+  </div>
+
+  <!-- ===== WORLD CREATION SCREEN ===== -->
+  <div class="screen" id="worldScreen" style="display:none">
+    <div class="world-panel">
+      <div class="world-title">🌍 Crear Mundo</div>
+      <div class="world-option">
+        <label>🌱 Semilla del mundo</label>
+        <input class="seed-input" id="seedInput" type="text" placeholder="Escribe o deja al azar...">
+      </div>
+      <div class="world-option">
+        <label>🗺 Bioma dominante</label>
+        <div class="world-biome-grid" id="biomeGrid">
+          <div class="biome-card active" data-biome="balanced" onclick="selectBiome(this)"><span>🌿</span>Balanceado</div>
+          <div class="biome-card" data-biome="forest" onclick="selectBiome(this)"><span>🌲</span>Bosque</div>
+          <div class="biome-card" data-biome="ocean" onclick="selectBiome(this)"><span>🌊</span>Oceánico</div>
+          <div class="biome-card" data-biome="desert" onclick="selectBiome(this)"><span>🏜</span>Desierto</div>
+          <div class="biome-card" data-biome="snow" onclick="selectBiome(this)"><span>❄</span>Nieve</div>
+          <div class="biome-card" data-biome="swamp" onclick="selectBiome(this)"><span>🦎</span>Pantano</div>
+        </div>
+      </div>
+      <div class="world-option">
+        <label>⚔ Dificultad: <span id="diffLabel">Normal</span></label>
+        <input type="range" id="diffSlider" min="0" max="2" value="1" oninput="updateDiff(this.value)">
+      </div>
+      <canvas id="previewCanvas" width="460" height="100" style="width:100%;height:100px;border-radius:12px;margin:8px 0;border:2px solid rgba(78,203,113,0.2)"></canvas>
+      <div style="display:flex;gap:10px;margin-top:8px">
+        <button class="btn-secondary" style="flex:1" onclick="showIntro()">← Volver</button>
+        <button class="btn-main" style="flex:2" onclick="startNewWorld()">🚀 ¡Crear!</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MULTIPLAYER LOBBY ===== -->
+  <div class="screen" id="mpLobby" style="display:none">
+    <div class="world-panel" style="text-align:center">
+      <div class="world-title">👥 Multijugador</div>
+      <div style="font-size:48px;margin:20px 0;animation:floatLogo 2s ease-in-out infinite">🌐</div>
+      <div style="color:#a8e6be;font-size:14px;line-height:2;margin-bottom:20px">
+        <b style="color:#4ecb71">Modo Simulado Activo</b><br>
+        Comparte tu mundo con otros jugadores.<br>
+        Los jugadores online aparecerán en tu mapa.<br>
+        <span style="color:#ffd700">⚡ Latencia: ~12ms · Región: EU-West</span>
+      </div>
+      <div id="lobbyList" style="margin-bottom:16px">
+        <div class="mp-player" style="justify-content:center">
+          <div class="mp-dot"></div> CactusCoyote_77 · 🌿 Bosque Norte
+        </div>
+        <div class="mp-player" style="justify-content:center">
+          <div class="mp-dot" style="background:#f39c12"></div> SkyWalker_X · 🏔 Montaña
+        </div>
+        <div class="mp-player" style="justify-content:center">
+          <div class="mp-dot" style="background:#e74c3c"></div> NightHunter_Z · 🌊 Costa Sur
+        </div>
+      </div>
+      <div style="display:flex;gap:10px">
+        <button class="btn-secondary" style="flex:1" onclick="showIntro()">← Volver</button>
+        <button class="btn-main" style="flex:2" onclick="startMultiplayer()">⚡ Unirse</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== IN-GAME UI ===== -->
+  <div id="gameUI" style="display:none">
+    <div id="topHud">
+      <!-- Stats -->
+      <div class="hud-card" style="animation-delay:0s">
+        <div class="stat-row">
+          <span class="stat-icon">❤</span>
+          <div class="bar-outer"><div class="bar-inner bar-hp" id="hpBar" style="width:100%"></div></div>
+          <span class="bar-val" id="hpVal">100</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-icon">🍖</span>
+          <div class="bar-outer"><div class="bar-inner bar-food" id="foodBar" style="width:100%"></div></div>
+          <span class="bar-val" id="foodVal">100</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-icon">⚡</span>
+          <div class="bar-outer"><div class="bar-inner bar-energy" id="energyBar" style="width:100%"></div></div>
+          <span class="bar-val" id="energyVal">100</span>
+        </div>
+      </div>
+      <!-- Clock -->
+      <div class="hud-card clock-card" style="animation-delay:0.1s">
+        <div class="clock-emoji" id="clockEmoji">☀️</div>
+        <div class="clock-time" id="clockTime">06:00</div>
+        <div class="clock-day" id="clockDay">DÍA 1</div>
+        <div class="biome-badge" id="biomeBadge">BOSQUE</div>
+      </div>
+      <!-- Profile -->
+      <div class="hud-card profile-card" style="animation-delay:0.2s">
+        <div class="avatar-ring" id="avatarRing">🧑</div>
+        <div class="profile-info">
+          <div class="profile-name" id="profileName">Viajero</div>
+          <div class="profile-xp">
+            ⭐ <span id="xpVal">0</span> XP
+          </div>
+          <div style="display:flex;align-items:center;gap:4px;margin-top:2px">
+            <span style="font-size:10px;color:#ffd700;font-weight:800">Lv.<span id="lvlVal">1</span></span>
+            <div class="xp-bar-outer"><div class="xp-bar-inner" id="xpBar" style="width:0%"></div></div>
+          </div>
+          <div style="font-size:9px;color:#555;margin-top:2px">📍 <span id="posLabel">0,0</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hotbar -->
+    <div id="hotbar"></div>
+
+    <!-- Craft -->
+    <div id="craftPanel">
+      <div class="craft-title">⚒ Craftear</div>
+      <div id="craftList"></div>
+    </div>
+
+    <!-- MP Panel -->
+    <div id="mpPanel">
+      <div class="mp-title">👥 Online</div>
+      <div id="mpPlayerList"></div>
+    </div>
+
+    <!-- Messages -->
+    <div id="msgLog"></div>
+
+    <!-- Tooltip -->
+    <div id="tooltip">
+      <div class="tt-name" id="ttName"></div>
+      <div class="tt-desc" id="ttDesc"></div>
+      <div class="tt-use" id="ttUse"></div>
+    </div>
+
+    <!-- Mobile D-Pad -->
+    <div id="mobileCtrl">
+      <div class="dpad">
+        <div></div>
+        <div class="dpad-btn" id="dUp" ontouchstart="mkeys.up=true" ontouchend="mkeys.up=false">▲</div>
+        <div></div>
+        <div class="dpad-btn" id="dLeft" ontouchstart="mkeys.left=true" ontouchend="mkeys.left=false">◀</div>
+        <div class="dpad-center"></div>
+        <div class="dpad-btn" id="dRight" ontouchstart="mkeys.right=true" ontouchend="mkeys.right=false">▶</div>
+        <div></div>
+        <div class="dpad-btn" id="dDown" ontouchstart="mkeys.down=true" ontouchend="mkeys.down=false">▼</div>
+        <div></div>
+      </div>
+    </div>
+
+    <!-- Mobile Actions -->
+    <div id="mobileActions">
+      <button class="action-btn" ontouchstart="tryGather()">E</button>
+      <button class="action-btn" ontouchstart="toggleCraft()">C</button>
+      <button class="action-btn" ontouchstart="useSelected()">F</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ================================================
+// ARCADIA BRIDGE
+// ================================================
+class ArcadiaBridge {
+  constructor() {
+    this.callbacks = {};
+    this.user = null;
+    window.addEventListener('message', (e) => {
+      const { type, requestId, payload } = e.data || {};
+      if (requestId && this.callbacks[requestId]) {
+        this.callbacks[requestId](payload);
+        delete this.callbacks[requestId];
+      }
+    });
+  }
+  _send(type, payload = {}) {
+    return new Promise((resolve) => {
+      const requestId = Date.now().toString(36) + Math.random().toString(36).substr(2);
+      this.callbacks[requestId] = resolve;
+      window.parent.postMessage({ type, payload, requestId }, '*');
+      // Fallback after 1s if no Arcadia
+      setTimeout(() => {
+        if (this.callbacks[requestId]) {
+          this.callbacks[requestId]({ success: false, offline: true });
+          delete this.callbacks[requestId];
+        }
+      }, 1000);
+    });
+  }
+  async login() { return this._send('ARCADIA_LOGIN'); }
+  async save(dataString) { return this._send('ARCADIA_SAVE_DATA', { data: dataString }); }
+  async load() { return this._send('ARCADIA_LOAD_DATA'); }
+  async unlock(achievementId) { return this._send('ARCADIA_UNLOCK_ACHIEVEMENT', { achievementId }); }
+  async buy(productId) { return this._send('ARCADIA_BUY_PRODUCT', { productId }); }
+  async setRankingValue(value) { return this._send('ARCADIA_UPDATE_RANKING', { value }); }
+  async openStore() { return this._send('ARCADIA_OPEN_STORE'); }
+  onSaveRequest(cb) { window.addEventListener('message', e => { if(e.data?.type==='ARCADIA_REQUEST_SAVE') cb(); }); }
+}
+window.Arcadia = new ArcadiaBridge();
+
+// ================================================
+// CANVAS SETUP
+// ================================================
+const canvases = {};
+['bg','world','entity','light','fx'].forEach(id => {
+  canvases[id] = document.getElementById(id+'Canvas');
+  canvases[id+'ctx'] = canvases[id].getContext('2d');
+});
+const bgc = canvases.bgctx, wc = canvases.worldctx, ec = canvases.entityctx, lc = canvases.lightctx, fc = canvases.fxctx;
+
+let W, H, TILE = 36;
+function resize() {
+  W = window.innerWidth; H = window.innerHeight;
+  ['bg','world','entity','light','fx'].forEach(id => {
+    canvases[id].width = W; canvases[id].height = H;
+  });
+}
+resize();
+window.addEventListener('resize', resize);
+
+// ================================================
+// NOISE / WORLD GEN
+// ================================================
+function hash(x, y, s=0) {
+  let n = Math.sin(x*127.1+y*311.7+s*74.3)*43758.5453;
+  return n - Math.floor(n);
+}
+function fbm(x, y, s=0, oct=5) {
+  let v=0,a=0.5,f=1;
+  for(let i=0;i<oct;i++){v+=hash(x*f,y*f,s+i)*a;a*=0.5;f*=2.1;}
+  return v;
+}
+
+// Tile types
+const T = {WATER:0,SHALLOWS:1,SAND:2,GRASS:3,MEADOW:4,FOREST:5,DENSE:6,MUD:7,STONE:8,MTN:9,SNOW:10,FLOWER:11};
+
+const TILE_BASE = {
+  0: [[30,80,160],[25,70,145],[20,60,130]],
+  1: [[60,130,200],[70,145,210],[55,120,190]],
+  2: [[210,175,100],[195,160,88],[220,185,110]],
+  3: [[65,130,55],[75,145,60],[58,118,48]],
+  4: [[80,155,65],[90,168,75],[70,140,58]],
+  5: [[42,90,35],[38,82,30],[48,98,40]],
+  6: [[25,55,20],[22,50,18],[28,60,22]],
+  7: [[70,60,40],[62,52,34],[78,68,46]],
+  8: [[95,103,112],[88,95,103],[102,110,120]],
+  9: [[120,128,135],[110,118,125],[130,138,145]],
+  10:[[220,235,248],[210,225,238],[230,242,255]],
+  11:[[80,155,65],[220,190,60],[80,155,65]],
+};
+
+const MAP_W=100, MAP_H=100;
+let worldMap=[], worldResources=new Map();
+
+let worldConfig = { seed:'', biome:'balanced', diff:1 };
+
+function genMap() {
+  const seed = worldConfig.seed || Math.random().toString(36).substr(2,8);
+  const s = [...seed].reduce((a,c)=>a+c.charCodeAt(0),0);
+  const biasMap = { balanced:0.5, forest:0.65, ocean:0.3, desert:0.45, snow:0.7, swamp:0.55 };
+  const forestBias = biasMap[worldConfig.biome] || 0.5;
+  const waterBias = worldConfig.biome==='ocean'?0.3: worldConfig.biome==='desert'?0.7:0.45;
+
+  worldMap=[];
+  for(let y=0;y<MAP_H;y++){
+    worldMap[y]=[];
+    for(let x=0;x<MAP_W;x++){
+      const h = fbm(x/25,y/25,s);
+      const m = fbm(x/12,y/12,s+50);
+      const ff = fbm(x/18,y/18,s+100);
+      const edgeFade = Math.min(x/8,y/8,(MAP_W-x)/8,(MAP_H-y)/8,1);
+      const elev = h*edgeFade;
+      let t;
+      if(elev<waterBias-0.2) t=T.WATER;
+      else if(elev<waterBias-0.13) t=T.SHALLOWS;
+      else if(elev<waterBias) t=T.SAND;
+      else if(elev<waterBias+0.08) t=(m>0.6?T.MUD:T.GRASS);
+      else if(elev<waterBias+0.2) {
+        if(worldConfig.biome==='desert') t=T.SAND;
+        else if(worldConfig.biome==='snow') t=T.SNOW;
+        else t=(ff>0.7?T.FLOWER:(ff>0.55?T.FOREST:T.MEADOW));
+      }
+      else if(elev<waterBias+0.32) {
+        if(worldConfig.biome==='snow') t=T.SNOW;
+        else t=(ff>forestBias?T.DENSE:T.FOREST);
+      }
+      else if(elev<waterBias+0.42) t=T.STONE;
+      else if(elev<waterBias+0.52) t=T.MTN;
+      else t=T.SNOW;
+      worldMap[y][x]={type:t,var:Math.floor(hash(x,y,s+200)*3),x,y};
+    }
+  }
+  placeResources(s);
+}
+
+// Resources
+const RT = {
+  TREE:{e:'🌲',n:'Árbol',loot:{WOOD:3,APPLE:1},hp:3,on:[T.FOREST,T.DENSE]},
+  PINE:{e:'🌲',n:'Pino', loot:{WOOD:4,PINECONE:2},hp:3,on:[T.DENSE]},
+  ROCK:{e:'🪨',n:'Roca', loot:{STONE:3,FLINT:1},hp:4,on:[T.STONE,T.MTN]},
+  BUSH:{e:'🌿',n:'Arbusto',loot:{BERRY:3,FIBER:2},hp:1,on:[T.GRASS,T.MEADOW,T.FOREST]},
+  FLOWER:{e:'🌸',n:'Flor',loot:{PETAL:3,HERB:1},hp:1,on:[T.FLOWER,T.MEADOW]},
+  SHROOM:{e:'🍄',n:'Hongo',loot:{MUSHROOM:3},hp:1,on:[T.FOREST,T.DENSE,T.MUD]},
+  CACTUS:{e:'🌵',n:'Cactus',loot:{FIBER:2,WATERJ:1},hp:2,on:[T.SAND]},
+  CRYSTAL:{e:'💎',n:'Cristal',loot:{CRYSTAL:1,STONE:2},hp:5,on:[T.MTN,T.SNOW]},
+  SNOWBERRY:{e:'🫐',n:'Bayas Nieve',loot:{BERRY:2,ICE:1},hp:1,on:[T.SNOW]},
+};
+
+function placeResources(s) {
+  worldResources.clear();
+  for(let y=0;y<MAP_H;y++) for(let x=0;x<MAP_W;x++){
+    const tile=worldMap[y][x].type;
+    const r=hash(x+0.3,y+0.7,s+300);
+    for(const[rk,rd] of Object.entries(RT)){
+      if(rd.on.includes(tile)&&r<0.22){
+        worldResources.set(`${x},${y}`,{type:rk,hp:rd.hp,mhp:rd.hp,resp:0,anim:Math.random()*Math.PI*2});
+        break;
+      }
+    }
+  }
+}
+
+// ================================================
+// ITEMS & CRAFTING
+// ================================================
+const ITEMS = {
+  WOOD:    {e:'🪵',n:'Madera',  d:'Material básico'},
+  STONE:   {e:'🪨',n:'Piedra',  d:'Material resistente'},
+  FLINT:   {e:'🔶',n:'Pedernal',d:'Para hacer fuego'},
+  FIBER:   {e:'🧵',n:'Fibra',   d:'Para cuerdas'},
+  BERRY:   {e:'🫐',n:'Bayas',   d:'Recupera 20 hambre',use:'food',val:20},
+  APPLE:   {e:'🍎',n:'Manzana', d:'Recupera 25 hambre',use:'food',val:25},
+  MUSHROOM:{e:'🍄',n:'Hongo',   d:'Comestible',use:'food',val:15},
+  PETAL:   {e:'🌸',n:'Pétalo',  d:'Ingrediente alquimia'},
+  HERB:    {e:'🌿',n:'Hierba',  d:'Medicinal'},
+  PINECONE:{e:'🌰',n:'Piña',    d:'Semilla de pino'},
+  WATERJ:  {e:'💧',n:'Agua',    d:'Esencial'},
+  CRYSTAL: {e:'💎',n:'Cristal', d:'Raro y valioso'},
+  ICE:     {e:'🧊',n:'Hielo',   d:'Del ártico'},
+  // Crafted
+  TORCH:   {e:'🔦',n:'Antorcha',d:'Ilumina +90px',use:'torch'},
+  AXE:     {e:'🪓',n:'Hacha',   d:'Tala 2× rápido'},
+  PICKAXE: {e:'⛏', n:'Pico',    d:'Mina 2× rápido'},
+  ROPE:    {e:'🪢',n:'Cuerda',  d:'Construcción avanzada'},
+  CAMP:    {e:'⛺',n:'Camping', d:'Descansa +60 energía',use:'camp'},
+  POTION:  {e:'🧪',n:'Poción',  d:'Recupera 40 vida',use:'heal',val:40},
+  FISHCOOKED:{e:'🍳',n:'Pez Cocido',d:'Muy nutritivo',use:'food',val:50},
+  BOW:     {e:'🏹',n:'Arco',    d:'Caza animales'},
+  LANTERN: {e:'🏮',n:'Linterna',d:'Luz intensa +150px',use:'lantern'},
+  RAFT:    {e:'🛶',n:'Balsa',   d:'Navega el agua',use:'raft'},
+  FISH:    {e:'🐟',n:'Pez',     d:'Pesca fresca'},
+};
+
+const RECIPES = [
+  {id:'TORCH',   e:'🔦',n:'Antorcha', needs:{WOOD:2,FIBER:1},   gives:{TORCH:2}},
+  {id:'AXE',     e:'🪓',n:'Hacha',    needs:{WOOD:3,STONE:2},   gives:{AXE:1}},
+  {id:'PICKAXE', e:'⛏', n:'Pico',     needs:{WOOD:2,STONE:3},   gives:{PICKAXE:1}},
+  {id:'ROPE',    e:'🪢',n:'Cuerda',   needs:{FIBER:4},           gives:{ROPE:1}},
+  {id:'CAMP',    e:'⛺',n:'Camping',  needs:{WOOD:8,ROPE:2,STONE:4},gives:{CAMP:1}},
+  {id:'POTION',  e:'🧪',n:'Poción',   needs:{PETAL:3,HERB:2,WATERJ:1},gives:{POTION:2}},
+  {id:'FISHCOOKED',e:'🍳',n:'Pez Cocido',needs:{FISH:2,FLINT:1},gives:{FISHCOOKED:2}},
+  {id:'BOW',     e:'🏹',n:'Arco',     needs:{WOOD:5,ROPE:2,FLINT:2},gives:{BOW:1}},
+  {id:'LANTERN', e:'🏮',n:'Linterna', needs:{CRYSTAL:1,FLINT:2,WOOD:3},gives:{LANTERN:1}},
+  {id:'RAFT',    e:'🛶',n:'Balsa',    needs:{WOOD:12,ROPE:4},   gives:{RAFT:1}},
+];
+
+// ================================================
+// PLAYER
+// ================================================
+const player = {
+  wx:50*36, wy:50*36, // world pixel pos
+  vx:0, vy:0,         // velocity (smooth movement)
+  speed:2.8,
+  hp:100,mhp:100, food:100,mfood:100, energy:100,menergy:100,
+  xp:0, level:1, xpNeeded:100,
+  inv:{}, hotbar:Array(8).fill(null), slot:0,
+  torch:false, lantern:false, raft:false,
+  day:1, time:6*60,
+  facing:'down', moving:false,
+  animT:0, walkCycle:0,
+  name:'Viajero', avatar:'🧑',
+  lights: [], // dynamic light sources
+};
+
+// Fake multiplayer players
+const mpPlayers = [
+  {name:'CactusCoyote',avatar:'🤠',wx:55*36,wy:48*36,color:'#f39c12',animT:0,walkCycle:0,moving:false},
+  {name:'SkyWalker',  avatar:'🏔',wx:48*36,wy:55*36,color:'#3498db',animT:0,walkCycle:0,moving:false},
+];
+let multiplayerMode = false;
+
+// Camera (smooth)
+const cam = {x:0,y:0,tx:0,ty:0};
+
+// ================================================
+// INPUT
+// ================================================
+const keys={};
+const mkeys={up:false,down:false,left:false,right:false};
+window.addEventListener('keydown',e=>{
+  keys[e.code]=true;
+  if(e.code==='KeyE') tryGather();
+  if(e.code==='KeyC') toggleCraft();
+  if(e.code==='KeyF') useSelected();
+  for(let i=1;i<=8;i++) if(e.code===`Digit${i}`) setSlot(i-1);
+  e.preventDefault();
+});
+window.addEventListener('keyup',e=>{ keys[e.code]=false; });
+
+function setSlot(i){ player.slot=i; renderHotbar(); }
+
+// ================================================
+// EFFECTS
+// ================================================
+const particles=[];
+
+function spawnFX(wx,wy,text,color='#4ecb71'){
+  particles.push({wx,wy,text,color,life:1,vy:-1.5,t:0});
+}
+
+function spawnGather(wx,wy,rtype){
+  const rd=RT[rtype];
+  spawnFX(wx,wy,rd.e);
+}
+
+// ================================================
+// MESSAGES
+// ================================================
+function addMsg(text){
+  const log=document.getElementById('msgLog');
+  const el=document.createElement('div');
+  el.className='msg'; el.textContent=text;
+  log.appendChild(el);
+  if(log.children.length>5) log.firstChild.remove();
+  setTimeout(()=>el.remove(),4200);
+}
+
+// ================================================
+// GATHER
+// ================================================
+function tryGather(){
+  const tx=Math.floor(player.wx/TILE), ty=Math.floor(player.wy/TILE);
+  let found=false;
+  for(let dy=-1;dy<=1&&!found;dy++) for(let dx=-1;dx<=1&&!found;dx++){
+    const key=`${tx+dx},${ty+dy}`;
+    const res=worldResources.get(key);
+    if(res&&res.resp<=0){
+      const rd=RT[res.type];
+      let dmg=1;
+      const sel=player.hotbar[player.slot];
+      if(sel==='AXE'&&['TREE','PINE'].includes(res.type)) dmg=2;
+      if(sel==='PICKAXE'&&['ROCK','CRYSTAL'].includes(res.type)) dmg=2;
+      res.hp-=dmg;
+      spawnGather((tx+dx+0.5)*TILE,(ty+dy+0.5)*TILE,res.type);
+      if(res.hp<=0){
+        for(const[item,amt] of Object.entries(rd.loot)){
+          const got=Math.max(1,Math.round(amt*(0.5+Math.random()*0.7)));
+          addItem(item,got);
+        }
+        res.resp=250+Math.random()*150;
+        res.hp=res.mhp;
+        gainXP(10+player.level*3);
+        player.energy=Math.max(0,player.energy-5);
+        // Achievement: first gather
+        Arcadia.unlock('first_gather');
+      } else {
+        addMsg(`${rd.e} ${rd.n} — ${res.hp}/${res.mhp} HP`);
+        player.energy=Math.max(0,player.energy-2);
+      }
+      found=true;
+    }
+  }
+  if(!found) addMsg('No hay recursos cerca (E)');
+}
+
+// ================================================
+// INVENTORY
+// ================================================
+function addItem(id,n=1){
+  player.inv[id]=(player.inv[id]||0)+n;
+  if(!player.hotbar.includes(id)){
+    const empty=player.hotbar.indexOf(null);
+    if(empty>=0) player.hotbar[empty]=id;
+  }
+  addMsg(`+${n} ${ITEMS[id].e} ${ITEMS[id].n}`);
+  renderHotbar();
+  // save to arcadia periodically
+  scheduleSave();
+}
+function removeItem(id,n=1){
+  player.inv[id]=Math.max(0,(player.inv[id]||0)-n);
+  if(!player.inv[id]){delete player.inv[id]; player.hotbar=player.hotbar.map(s=>s===id?null:s);}
+  renderHotbar();
+}
+function hasItems(needs){ return Object.entries(needs).every(([k,v])=>(player.inv[k]||0)>=v); }
+
+let saveTimer=null;
+function scheduleSave(){
+  clearTimeout(saveTimer);
+  saveTimer=setTimeout(()=>{
+    const data=JSON.stringify({inv:player.inv,hp:player.hp,food:player.food,energy:player.energy,xp:player.xp,level:player.level,day:player.day,time:player.time,wx:player.wx,wy:player.wy});
+    Arcadia.save(data);
+    Arcadia.setRankingValue(player.xp);
+  },3000);
+}
+
+// ================================================
+// CRAFTING
+// ================================================
+let craftOpen=false;
+function toggleCraft(){
+  craftOpen=!craftOpen;
+  document.getElementById('craftPanel').className=craftOpen?'open':'';
+  if(craftOpen) renderCraft();
+}
+function renderCraft(){
+  const list=document.getElementById('craftList');
+  list.innerHTML='';
+  for(const r of RECIPES){
+    const can=hasItems(r.needs);
+    const div=document.createElement('div');
+    div.className='citem '+(can?'can':'cant');
+    const cost=Object.entries(r.needs).map(([k,v])=>`${ITEMS[k].e}${v}`).join(' ');
+    div.innerHTML=`<span class="citem-name">${r.e} ${r.n}</span><span class="citem-cost">${cost}</span>`;
+    if(can) div.onclick=()=>doCraft(r);
+    list.appendChild(div);
+  }
+}
+function doCraft(r){
+  if(!hasItems(r.needs)){addMsg('¡Faltan materiales!');return;}
+  for(const[k,v] of Object.entries(r.needs)) removeItem(k,v);
+  for(const[k,v] of Object.entries(r.gives)) addItem(k,v);
+  gainXP(25+player.level*5);
+  addMsg(`⚒ ¡Creaste ${ITEMS[r.id].e} ${ITEMS[r.id].n}!`);
+  spawnFX(player.wx,player.wy,'⚒','#ffd700');
+  renderCraft();
+  // Achievement
+  Arcadia.unlock('first_craft');
+}
+
+// ================================================
+// USE ITEM
+// ================================================
+function useSelected(){
+  const id=player.hotbar[player.slot];
+  if(!id||!player.inv[id]){addMsg('Nada seleccionado');return;}
+  const it=ITEMS[id];
+  if(!it.use){addMsg(`${it.e} ${it.n}: no usable directamente`);return;}
+  if(it.use==='food'){player.food=Math.min(player.mfood,player.food+(it.val||20));removeItem(id,1);addMsg(`🍖 +${it.val||20} Hambre`);spawnFX(player.wx,player.wy,'😋');}
+  else if(it.use==='heal'){player.hp=Math.min(player.mhp,player.hp+(it.val||40));removeItem(id,1);addMsg(`❤ +${it.val} Vida`);spawnFX(player.wx,player.wy,'❤','#e74c3c');}
+  else if(it.use==='torch'){player.torch=!player.torch;addMsg(player.torch?'🔦 Antorcha encendida':'🔦 Apagada');}
+  else if(it.use==='lantern'){player.lantern=!player.lantern;addMsg(player.lantern?'🏮 Linterna encendida':'🏮 Apagada');}
+  else if(it.use==='camp'){player.energy=Math.min(player.menergy,player.energy+60);removeItem(id,1);addMsg('⛺ ¡Descansaste!');spawnFX(player.wx,player.wy,'💤','#74b9ff');}
+  else if(it.use==='raft'){player.raft=!player.raft;addMsg(player.raft?'🛶 Navegando':'🛶 Desembarcaste');}
+}
+
+// ================================================
+// XP / LEVEL
+// ================================================
+function gainXP(n){
+  player.xp+=n;
+  while(player.xp>=player.xpNeeded){
+    player.xp-=player.xpNeeded;
+    player.level++;
+    player.xpNeeded=Math.floor(player.level*100*1.2);
+    player.mhp+=10; player.hp=player.mhp;
+    addMsg(`✨ ¡NIVEL ${player.level}! Salud máxima +10`);
+    spawnFX(player.wx,player.wy-20,'⬆ NIV!','#ffd700');
+    Arcadia.unlock('level_up');
+  }
+}
+
+// ================================================
+// SKY & LIGHTING
+// ================================================
+function skyColor(t){
+  const h=t/60;
+  if(h<5)  return [10,15,26];
+  if(h<6)  return lerp3([10,15,26],[255,112,67],(h-5));
+  if(h<7)  return lerp3([255,112,67],[135,206,235],(h-6));
+  if(h<17) return [135,206,235];
+  if(h<18) return lerp3([135,206,235],[255,120,60],(h-17));
+  if(h<19) return lerp3([255,120,60],[60,30,80],(h-18));
+  if(h<20) return lerp3([60,30,80],[10,15,26],(h-19));
+  return [10,15,26];
+}
+function lerp3(a,b,t){return a.map((v,i)=>Math.round(v+(b[i]-v)*Math.max(0,Math.min(1,t))));}
+function darkness(t){
+  const h=t/60;
+  if(h>=7&&h<17) return 0;
+  if(h<5)  return 0.9;
+  if(h<7)  return 0.9*(1-(h-5)/2);
+  if(h>=17&&h<20) return (h-17)/3*0.9;
+  return 0.9;
+}
+function getSkyGrad(t){
+  const [r,g,b]=skyColor(t);
+  return `rgb(${r},${g},${b})`;
+}
+
+// ================================================
+// MOVEMENT (smooth velocity-based)
+// ================================================
+function movePlayer(dt){
+  let dx=0,dy=0;
+  if(keys['ArrowLeft']||keys['KeyA']||mkeys.left)  {dx=-1; player.facing='left';}
+  if(keys['ArrowRight']||keys['KeyD']||mkeys.right) {dx=1;  player.facing='right';}
+  if(keys['ArrowUp']||keys['KeyW']||mkeys.up)       {dy=-1; player.facing='up';}
+  if(keys['ArrowDown']||keys['KeyS']||mkeys.down)   {dy=1;  player.facing='down';}
+  // Normalize diagonal
+  if(dx!==0&&dy!==0){const f=1/Math.SQRT2;dx*=f;dy*=f;}
+
+  const spd=player.speed*(player.energy<15?0.5:1)*(keys['ShiftLeft']?1.6:1);
+  const accel=0.3, friction=0.8;
+  player.vx=(player.vx+dx*spd)*friction + dx*accel;
+  player.vy=(player.vy+dy*spd)*friction + dy*accel;
+
+  // Clamp velocity
+  const maxV=player.speed*2;
+  player.vx=Math.max(-maxV,Math.min(maxV,player.vx));
+  player.vy=Math.max(-maxV,Math.min(maxV,player.vy));
+
+  // Collision resolution - try X and Y separately
+  const nx=player.wx+player.vx;
+  const ny=player.wy+player.vy;
+
+  if(canMoveTo(nx, player.wy)) player.wx=Math.max(TILE/2,Math.min(MAP_W*TILE-TILE/2,nx));
+  else player.vx*=-0.2;
+
+  if(canMoveTo(player.wx, ny)) player.wy=Math.max(TILE/2,Math.min(MAP_H*TILE-TILE/2,ny));
+  else player.vy*=-0.2;
+
+  player.moving=(Math.abs(player.vx)+Math.abs(player.vy))>0.2;
+  if(player.moving){
+    player.animT+=dt*0.007;
+    player.walkCycle=Math.sin(player.animT*8);
+    player.energy=Math.max(0,player.energy-0.012*dt/16);
+  }
+}
+
+function canMoveTo(wx,wy){
+  const tx=Math.floor(wx/TILE), ty=Math.floor(wy/TILE);
+  if(tx<0||ty<0||tx>=MAP_W||ty>=MAP_H) return false;
+  const t=worldMap[ty]?.[tx]?.type;
+  // Water check
+  if((t===T.WATER)&&!player.raft) return false;
+  // Solid resource check
+  const res=worldResources.get(`${tx},${ty}`);
+  if(res&&res.resp<=0){
+    const solid=['TREE','PINE','ROCK','CRYSTAL','CACTUS'];
+    if(solid.includes(res.type)) return false;
+  }
+  return true;
+}
+
+// ================================================
+// FAKE MULTIPLAYER AI MOVEMENT
+// ================================================
+function updateMPPlayers(dt){
+  if(!multiplayerMode) return;
+  for(const p of mpPlayers){
+    p.animT+=dt*0.005;
+    // Wander randomly
+    if(Math.random()<0.005){p.tvx=(Math.random()-0.5)*2;p.tvy=(Math.random()-0.5)*2;}
+    if(!p.tvx) p.tvx=0; if(!p.tvy) p.tvy=0;
+    p.tvx=p.tvx||0; p.tvy=p.tvy||0;
+    p.wx+=p.tvx*0.8; p.wy+=p.tvy*0.8;
+    p.moving=true;
+    p.walkCycle=Math.sin(p.animT*7);
+  }
+}
+
+// ================================================
+// SURVIVAL TICK
+// ================================================
+let survTick=0;
+function survivalTick(dt){
+  survTick+=dt;
+  if(survTick<200) return;
+  survTick=0;
+  player.time+=1;
+  if(player.time>=1440){player.time=0;player.day++;addMsg(`🌅 ¡Día ${player.day}!`);}
+  player.food=Math.max(0,player.food-0.3);
+  if(player.food<=0){player.hp=Math.max(0,player.hp-2);addMsg('😰 ¡Hambre!');}
+  // Auto-eat
+  if(player.food<15){
+    for(const id of ['BERRY','APPLE','MUSHROOM']){
+      if((player.inv[id]||0)>0){
+        const it=ITEMS[id];
+        player.food=Math.min(player.mfood,player.food+(it.val||15));
+        removeItem(id,1);
+        addMsg(`🍽 Comiste ${it.e} automáticamente`);
+        break;
+      }
+    }
+  }
+  // Respawn resources
+  for(const res of worldResources.values()) if(res.resp>0) res.resp--;
+}
+
+// ================================================
+// CAMERA (smooth lerp)
+// ================================================
+function updateCam(){
+  cam.tx=player.wx-W/2;
+  cam.ty=player.wy-H/2;
+  cam.tx=Math.max(0,Math.min(MAP_W*TILE-W,cam.tx));
+  cam.ty=Math.max(0,Math.min(MAP_H*TILE-H,cam.ty));
+  cam.x+=(cam.tx-cam.x)*0.12;
+  cam.y+=(cam.ty-cam.y)*0.12;
+}
+
+// ================================================
+// RENDERING
+// ================================================
+function renderBackground(){
+  // Sky gradient
+  const sky=getSkyGrad(player.time);
+  bgc.fillStyle=sky;
+  bgc.fillRect(0,0,W,H);
+  // Stars at night
+  const dk=darkness(player.time);
+  if(dk>0.3){
+    bgc.fillStyle=`rgba(255,255,255,${dk*0.5})`;
+    for(let i=0;i<100;i++){
+      const sx=hash(i,0,42)*W, sy=hash(0,i,42)*H*0.45;
+      const sz=hash(i,i,42)<0.8?1:2;
+      bgc.fillRect(sx,sy,sz,sz);
+    }
+    // Moon
+    const mx=W*0.75,my=H*0.12;
+    bgc.fillStyle=`rgba(230,240,255,${dk*0.9})`;
+    bgc.beginPath();bgc.arc(mx,my,20,0,Math.PI*2);bgc.fill();
+    bgc.fillStyle=sky;
+    bgc.beginPath();bgc.arc(mx+6,my-3,16,0,Math.PI*2);bgc.fill();
+  } else {
+    // Sun
+    const sh=player.time/60;
+    const t=(sh-6)/14; // 0..1 through the day
+    const sx=W*0.1+W*0.8*t, sy=H*0.2-Math.sin(t*Math.PI)*H*0.15;
+    const grd=bgc.createRadialGradient(sx,sy,0,sx,sy,35);
+    grd.addColorStop(0,'rgba(255,240,100,0.9)');
+    grd.addColorStop(0.5,'rgba(255,200,50,0.4)');
+    grd.addColorStop(1,'rgba(255,200,50,0)');
+    bgc.fillStyle=grd;
+    bgc.beginPath();bgc.arc(sx,sy,35,0,Math.PI*2);bgc.fill();
+    bgc.fillStyle='rgba(255,240,120,0.95)';
+    bgc.beginPath();bgc.arc(sx,sy,14,0,Math.PI*2);bgc.fill();
+  }
+}
+
+function renderWorld(){
+  wc.clearRect(0,0,W,H);
+  const sx=Math.max(0,Math.floor(cam.x/TILE)-1);
+  const sy=Math.max(0,Math.floor(cam.y/TILE)-1);
+  const ex=Math.min(MAP_W,Math.ceil((cam.x+W)/TILE)+1);
+  const ey=Math.min(MAP_H,Math.ceil((cam.y+H)/TILE)+1);
+
+  for(let y=sy;y<ey;y++) for(let x=sx;x<ex;x++){
+    const tile=worldMap[y][x];
+    const colors=TILE_BASE[tile.type];
+    const c=colors[tile.var%colors.length];
+    const px=Math.round(x*TILE-cam.x), py=Math.round(y*TILE-cam.y);
+
+    // Base tile
+    wc.fillStyle=`rgb(${c[0]},${c[1]},${c[2]})`;
+    wc.fillRect(px,py,TILE+1,TILE+1);
+
+    // Tile details (cartoon)
+    wc.globalAlpha=0.12;
+    if(tile.type===T.WATER||tile.type===T.SHALLOWS){
+      wc.fillStyle='#fff';
+      const woff=Math.sin(Date.now()*0.001+x*0.5+y*0.3)*3;
+      wc.fillRect(px+4+woff,py+TILE*0.4,TILE*0.5,3);
+      wc.fillRect(px+6+woff,py+TILE*0.65,TILE*0.35,3);
+    }
+    wc.globalAlpha=1;
+
+    // Outline/border effect for cartoon look
+    if(tile.type!==T.WATER&&tile.type!==T.SHALLOWS){
+      wc.strokeStyle='rgba(0,0,0,0.07)';
+      wc.lineWidth=1;
+      wc.strokeRect(px,py,TILE,TILE);
+    }
+  }
+
+  // Resources
+  wc.font=`${Math.round(TILE*0.7)}px serif`;
+  wc.textAlign='center';
+  const t=Date.now()*0.001;
+  for(let y=sy;y<ey;y++) for(let x=sx;x<ex;x++){
+    const res=worldResources.get(`${x},${y}`);
+    if(!res||res.resp>0) continue;
+    const rd=RT[res.type];
+    const px=Math.round(x*TILE-cam.x+TILE/2);
+    const py=Math.round(y*TILE-cam.y+TILE*0.85);
+    const bob=Math.sin(t*1.5+res.anim)*2;
+    // Shadow
+    wc.globalAlpha=0.2;
+    wc.fillStyle='#000';
+    wc.beginPath();
+    wc.ellipse(px,py+3,TILE*0.35,4,0,0,Math.PI*2);
+    wc.fill();
+    wc.globalAlpha=1;
+    wc.fillText(rd.e,px,py+bob);
+  }
+}
+
+function drawCartoonPlayer(ctx,wx,wy,facing,moving,walkCycle,avatar,color='#4ecb71',torch=false,lantern=false){
+  const px=Math.round(wx-cam.x);
+  const py=Math.round(wy-cam.y);
+  const bob=moving?walkCycle*4:0;
+  const leg1=moving?walkCycle*8:0;
+  const leg2=moving?-walkCycle*8:0;
+
+  // Shadow
+  ctx.globalAlpha=0.25;
+  ctx.fillStyle='#000';
+  ctx.beginPath();ctx.ellipse(px,py+2,12,5,0,0,Math.PI*2);ctx.fill();
+  ctx.globalAlpha=1;
+
+  // Legs (cartoon rounded)
+  const lc2=['#5a3e28','#6b4f36'];
+  ctx.fillStyle=lc2[0];
+  // Left leg
+  ctx.save();ctx.translate(px-5,py-2);ctx.rotate((leg1*Math.PI/180));
+  ctx.beginPath();ctx.roundRect(-3,0,6,11,3);ctx.fill();ctx.restore();
+  // Right leg
+  ctx.save();ctx.translate(px+5,py-2);ctx.rotate((leg2*Math.PI/180));
+  ctx.beginPath();ctx.roundRect(-3,0,6,11,3);ctx.fill();ctx.restore();
+
+  // Body
+  ctx.fillStyle=color;
+  ctx.beginPath();ctx.roundRect(px-9,py-17+bob*0.3,18,14,5);ctx.fill();
+  // Body shadow
+  ctx.fillStyle='rgba(0,0,0,0.15)';
+  ctx.beginPath();ctx.roundRect(px-9,py-10+bob*0.3,18,7,5);ctx.fill();
+
+  // Head
+  ctx.fillStyle='#f4c87a';
+  ctx.beginPath();ctx.roundRect(px-8,py-30+bob*0.2,16,14,6);ctx.fill();
+
+  // Eyes
+  ctx.fillStyle='#3a2010';
+  if(facing!=='up'){
+    ctx.beginPath();ctx.arc(px-3,py-24+bob*0.2,2,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.arc(px+3,py-24+bob*0.2,2,0,Math.PI*2);ctx.fill();
+    // Eye shine
+    ctx.fillStyle='#fff';
+    ctx.beginPath();ctx.arc(px-2,py-25+bob*0.2,0.8,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.arc(px+4,py-25+bob*0.2,0.8,0,Math.PI*2);ctx.fill();
+  }
+
+  // Hat
+  ctx.fillStyle='#3d2b10';
+  ctx.beginPath();ctx.roundRect(px-10,py-34+bob*0.2,20,6,3);ctx.fill();
+  ctx.fillStyle='#4a3318';
+  ctx.beginPath();ctx.roundRect(px-6,py-42+bob*0.2,12,10,4);ctx.fill();
+  // Hat band
+  ctx.fillStyle='#4ecb71';
+  ctx.fillRect(px-6,py-36+bob*0.2,12,2);
+
+  // Avatar emoji above head
+  ctx.font='14px serif';
+  ctx.textAlign='center';
+
+  // Torch/lantern
+  if(torch||lantern){
+    const lr=lantern?160:100;
+    const grd=ctx.createRadialGradient(px,py-15,0,px,py-15,lr);
+    grd.addColorStop(0,'rgba(255,200,60,0.18)');
+    grd.addColorStop(0.5,'rgba(255,150,30,0.06)');
+    grd.addColorStop(1,'rgba(255,150,30,0)');
+    ctx.fillStyle=grd;
+    ctx.beginPath();ctx.arc(px,py-15,lr,0,Math.PI*2);ctx.fill();
+    ctx.font='13px serif';
+    ctx.fillText(lantern?'🏮':'🔦',px+11,py-20);
+  }
+}
+
+function renderEntities(){
+  ec.clearRect(0,0,W,H);
+  // MP players
+  if(multiplayerMode){
+    for(const p of mpPlayers){
+      const colors=['#f39c12','#3498db'];
+      drawCartoonPlayer(ec,p.wx,p.wy,'down',p.moving,p.walkCycle||0,p.avatar,colors[mpPlayers.indexOf(p)]);
+      // Name tag
+      const px=Math.round(p.wx-cam.x);
+      const py=Math.round(p.wy-cam.y);
+      ec.fillStyle='rgba(10,25,15,0.8)';
+      ec.beginPath();ec.roundRect(px-30,py-52,60,16,6);ec.fill();
+      ec.fillStyle='#a8e6be';
+      ec.font='bold 10px Nunito,sans-serif';
+      ec.textAlign='center';
+      ec.fillText(p.name,px,py-40);
+    }
+  }
+  // Player
+  drawCartoonPlayer(ec,player.wx,player.wy,player.facing,player.moving,player.walkCycle,'🧑',player.torch||player.lantern?'#5a8c3f':'#4a7a2f',player.torch,player.lantern);
+}
+
+// ================================================
+// REALISTIC LIGHTING
+// ================================================
+function renderLighting(){
+  lc.clearRect(0,0,W,H);
+  const dk=darkness(player.time);
+  if(dk<=0) return;
+
+  // Fill darkness
+  lc.fillStyle=`rgba(0,5,12,${dk})`;
+  lc.fillRect(0,0,W,H);
+
+  const px=Math.round(player.wx-cam.x);
+  const py=Math.round(player.wy-cam.y);
+
+  // Player light sources
+  const lights=[];
+  const baseR=35; // ambient ambient body glow
+  lights.push({x:px,y:py,r:baseR,color:[255,255,200],intensity:0.4});
+  if(player.torch) lights.push({x:px+10,y:py-20,r:110,color:[255,180,60],intensity:1});
+  if(player.lantern) lights.push({x:px+8,y:py-18,r:175,color:[255,210,100],intensity:1.1});
+
+  // Campfire if on grass
+  // MP players light
+  if(multiplayerMode){
+    for(const p of mpPlayers){
+      lights.push({x:Math.round(p.wx-cam.x),y:Math.round(p.wy-cam.y),r:40,color:[255,200,80],intensity:0.5});
+    }
+  }
+
+  // Punch through darkness with lights
+  lc.globalCompositeOperation='destination-out';
+  for(const l of lights){
+    const grd=lc.createRadialGradient(l.x,l.y,0,l.x,l.y,l.r);
+    grd.addColorStop(0,`rgba(255,255,255,${Math.min(1,l.intensity*(1-dk*0.1))})`);
+    grd.addColorStop(0.35,`rgba(255,255,255,${0.6*l.intensity})`);
+    grd.addColorStop(0.7,`rgba(255,255,255,${0.2*l.intensity})`);
+    grd.addColorStop(1,'rgba(255,255,255,0)');
+    lc.fillStyle=grd;
+    lc.beginPath();lc.arc(l.x,l.y,l.r,0,Math.PI*2);lc.fill();
+  }
+  lc.globalCompositeOperation='source-over';
+
+  // Colored light overlay
+  lc.globalCompositeOperation='multiply';
+  for(const l of lights){
+    const [r,g,b]=l.color;
+    const grd=lc.createRadialGradient(l.x,l.y,0,l.x,l.y,l.r);
+    grd.addColorStop(0,`rgba(${r},${g},${b},0.4)`);
+    grd.addColorStop(1,'rgba(0,0,0,0)');
+    lc.fillStyle=grd;
+    lc.beginPath();lc.arc(l.x,l.y,l.r,0,Math.PI*2);lc.fill();
+  }
+  lc.globalCompositeOperation='source-over';
+}
+
+// ================================================
+// PARTICLES
+// ================================================
+function renderFX(dt){
+  fc.clearRect(0,0,W,H);
+  fc.textAlign='center';
+  for(let i=particles.length-1;i>=0;i--){
+    const p=particles[i];
+    p.t+=dt/1000;
+    p.wy+=p.vy;
+    p.life=Math.max(0,1-p.t/1.5);
+    if(p.life<=0){particles.splice(i,1);continue;}
+    fc.globalAlpha=p.life;
+    fc.font=`bold ${14+Math.floor(p.t*8)}px serif`;
+    fc.fillStyle=p.color;
+    fc.fillText(p.text,Math.round(p.wx-cam.x),Math.round(p.wy-cam.y));
+  }
+  fc.globalAlpha=1;
+}
+
+// ================================================
+// HUD UPDATES
+// ================================================
+function updateHUD(){
+  // Bars
+  document.getElementById('hpBar').style.width=(player.hp/player.mhp*100)+'%';
+  document.getElementById('foodBar').style.width=(player.food/player.mfood*100)+'%';
+  document.getElementById('energyBar').style.width=(player.energy/player.menergy*100)+'%';
+  document.getElementById('hpVal').textContent=Math.round(player.hp);
+  document.getElementById('foodVal').textContent=Math.round(player.food);
+  document.getElementById('energyVal').textContent=Math.round(player.energy);
+
+  // Clock
+  const h=Math.floor(player.time/60),m=Math.floor(player.time%60);
+  const isDay=player.time>=6*60&&player.time<20*60;
+  const isSunset=(player.time>=18*60&&player.time<20*60)||(player.time>=5*60&&player.time<7*60);
+  document.getElementById('clockEmoji').textContent=isDay?(isSunset?'🌅':'☀️'):'🌙';
+  document.getElementById('clockTime').textContent=`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+  document.getElementById('clockDay').textContent=`DÍA ${player.day}`;
+
+  // Biome
+  const tx=Math.floor(player.wx/TILE),ty=Math.floor(player.wy/TILE);
+  const biomeNames={[T.WATER]:'🌊 OCÉANO',[T.SHALLOWS]:'🌊 COSTA',[T.SAND]:'🏜 PLAYA',[T.GRASS]:'🌱 LLANURA',[T.MEADOW]:'🌸 PRADERA',[T.FOREST]:'🌲 BOSQUE',[T.DENSE]:'🌲 BOSQUE DENSO',[T.MUD]:'🦎 PANTANO',[T.STONE]:'🪨 PIEDRAS',[T.MTN]:'⛰ MONTAÑA',[T.SNOW]:'❄ NIEVE',[T.FLOWER]:'🌷 FLORECIDO'};
+  const tile=worldMap[ty]?.[tx]?.type;
+  document.getElementById('biomeBadge').textContent=biomeNames[tile]||'EXPLORADO';
+  document.getElementById('posLabel').textContent=`${tx},${ty}`;
+
+  // XP
+  document.getElementById('xpVal').textContent=player.xp;
+  document.getElementById('lvlVal').textContent=player.level;
+  document.getElementById('xpBar').style.width=(player.xp/player.xpNeeded*100)+'%';
+
+  // MP panel
+  if(multiplayerMode){
+    document.getElementById('mpPanel').className='show';
+    const plist=document.getElementById('mpPlayerList');
+    plist.innerHTML=mpPlayers.map(p=>`<div class="mp-player"><div class="mp-dot" style="background:${p.color}"></div>${p.name}</div>`).join('');
+  }
+}
+
+// ================================================
+// HOTBAR
+// ================================================
+function renderHotbar(){
+  const hb=document.getElementById('hotbar');
+  hb.innerHTML='';
+  for(let i=0;i<8;i++){
+    const id=player.hotbar[i];
+    const div=document.createElement('div');
+    div.className='hslot'+(player.slot===i?' active':'');
+    div.innerHTML=`<span class="hslot-num">${i+1}</span>`;
+    if(id&&player.inv[id]){
+      div.innerHTML+=`${ITEMS[id].e}<span class="hslot-count">${player.inv[id]}</span>`;
+      div.onmouseenter=()=>showTooltip(id,div);
+      div.onmouseleave=()=>document.getElementById('tooltip').style.display='none';
+    }
+    div.onclick=()=>setSlot(i);
+    hb.appendChild(div);
+  }
+}
+function showTooltip(id,el){
+  const it=ITEMS[id],tt=document.getElementById('tooltip');
+  document.getElementById('ttName').textContent=`${it.e} ${it.n}`;
+  document.getElementById('ttDesc').textContent=it.d;
+  document.getElementById('ttUse').textContent=it.use?`F para usar`:' ';
+  tt.style.display='block';
+  const r=el.getBoundingClientRect();
+  tt.style.left=r.left+'px';
+  tt.style.top=(r.top-90)+'px';
+}
+
+// ================================================
+// SCREENS
+// ================================================
+function showIntro(){
+  document.getElementById('introScreen').style.display='flex';
+  document.getElementById('worldScreen').style.display='none';
+  document.getElementById('mpLobby').style.display='none';
+  document.getElementById('gameUI').style.display='none';
+}
+function showWorldCreation(){
+  document.getElementById('introScreen').style.display='none';
+  document.getElementById('worldScreen').style.display='flex';
+  drawPreview();
+}
+function showMultiplayerLobby(){
+  document.getElementById('introScreen').style.display='none';
+  document.getElementById('mpLobby').style.display='flex';
+}
+function startMultiplayer(){
+  multiplayerMode=true;
+  worldConfig.biome='balanced';
+  worldConfig.diff=1;
+  startNewWorld();
+}
+
+function selectBiome(el){
+  document.querySelectorAll('.biome-card').forEach(e=>e.classList.remove('active'));
+  el.classList.add('active');
+  worldConfig.biome=el.dataset.biome;
+  drawPreview();
+}
+function updateDiff(v){
+  worldConfig.diff=parseInt(v);
+  const labels=['Fácil','Normal','Difícil'];
+  document.getElementById('diffLabel').textContent=labels[v];
+}
+function drawPreview(){
+  const pc=document.getElementById('previewCanvas');
+  const pctx=pc.getContext('2d');
+  const pw=pc.width,ph=pc.height;
+  const seed=document.getElementById('seedInput').value||'preview';
+  const s=[...seed].reduce((a,c)=>a+c.charCodeAt(0),0);
+  const biasMap={balanced:0.5,forest:0.65,ocean:0.3,desert:0.45,snow:0.7,swamp:0.55};
+  const waterBias=worldConfig.biome==='ocean'?0.3:worldConfig.biome==='desert'?0.7:0.45;
+  const forestBias=biasMap[worldConfig.biome]||0.5;
+  const cols=80,rows=20;
+  const cw=pw/cols,ch=ph/rows;
+  for(let y=0;y<rows;y++) for(let x=0;x<cols;x++){
+    const h=fbm(x/15,y/10,s);
+    const edgeFade=Math.min(x/5,y/3,(cols-x)/5,(rows-y)/3,1);
+    const elev=h*edgeFade;
+    let t;
+    if(elev<waterBias-0.2) t=T.WATER;
+    else if(elev<waterBias) t=T.SAND;
+    else if(elev<waterBias+0.2) t=worldConfig.biome==='snow'?T.SNOW:(elev<waterBias+0.08?T.GRASS:T.FOREST);
+    else if(elev<waterBias+0.35) t=worldConfig.biome==='snow'?T.SNOW:T.DENSE;
+    else t=T.MTN;
+    const c=TILE_BASE[t][0];
+    pctx.fillStyle=`rgb(${c[0]},${c[1]},${c[2]})`;
+    pctx.fillRect(x*cw,y*ch,cw+1,ch+1);
+  }
+}
+
+async function loadAndContinue(){
+  const res=await Arcadia.load();
+  if(res&&res.success&&res.data){
+    try{
+      const d=JSON.parse(res.data);
+      Object.assign(player,d);
+      addMsg('💾 Partida cargada!');
+    }catch(e){}
+  }
+  startNewWorld();
+}
+
+function startNewWorld(){
+  worldConfig.seed=document.getElementById('seedInput')?.value||Math.random().toString(36).substr(2,8);
+  // Loading animation
+  document.getElementById('introScreen').style.display='none';
+  document.getElementById('worldScreen').style.display='none';
+  document.getElementById('mpLobby').style.display='none';
+
+  let prog=0;
+  const loadInterval=setInterval(()=>{
+    prog=Math.min(100,prog+Math.random()*25);
+    document.getElementById('loadBar').style.width=prog+'%';
+    if(prog>=100){
+      clearInterval(loadInterval);
+      document.getElementById('loadBar').style.width='0%';
+      initGame();
+    }
+  },80);
+}
+
+function initGame(){
+  genMap();
+  // Spawn player in safe spot
+  let found=false;
+  for(let att=0;att<1000&&!found;att++){
+    const tx=40+Math.floor(Math.random()*20), ty=40+Math.floor(Math.random()*20);
+    if(worldMap[ty]?.[tx]?.type===T.GRASS&&!worldResources.has(`${tx},${ty}`)){
+      player.wx=(tx+0.5)*TILE; player.wy=(ty+0.5)*TILE;
+      found=true;
+    }
+  }
+  cam.x=player.wx-W/2; cam.y=player.wy-H/2;
+  // Starter items
+  addItem('WOOD',5); addItem('STONE',3); addItem('BERRY',5); addItem('FLINT',2);
+  document.getElementById('gameUI').style.display='block';
+  addMsg('🌿 ¡Bienvenido a WildCraft! Explora y sobrevive.');
+  setTimeout(()=>addMsg('💡 Presiona E cerca de recursos para recolectar'),2000);
+  setTimeout(()=>addMsg('⚒ Presiona C para craftear herramientas'),4000);
+  renderHotbar();
+
+  // Arcadia login
+  Arcadia.login().then(r=>{
+    if(r&&r.success&&r.user){
+      player.name=r.user.username||'Viajero';
+      if(r.user.avatar) player.avatar=r.user.avatar;
+      document.getElementById('profileName').textContent=player.name;
+      document.getElementById('avatarRing').textContent=player.avatar||'🧑';
+      addMsg(`👋 Hola, ${player.name}!`);
+    }
+  });
+  Arcadia.onSaveRequest(()=>scheduleSave());
+
+  if(!running){ running=true; last=performance.now(); requestAnimationFrame(loop); }
+}
+
+// ================================================
+// MAIN LOOP
+// ================================================
+let running=false, last=0;
+function loop(ts){
+  if(!running) return;
+  const dt=Math.min(ts-last,50);
+  last=ts;
+
+  movePlayer(dt);
+  updateMPPlayers(dt);
+  survivalTick(dt);
+  updateCam();
+
+  renderBackground();
+  renderWorld();
+  renderEntities();
+  renderLighting();
+  renderFX(dt);
+  updateHUD();
+
+  requestAnimationFrame(loop);
+}
+
+// ================================================
+// INTRO LEAVES ANIMATION
+// ================================================
+function createLeaves(){
+  const container=document.getElementById('introLeaves');
+  const emojis=['🍃','🍂','🌿','🌱','🍀','🌾'];
+  for(let i=0;i<15;i++){
+    const leaf=document.createElement('div');
+    leaf.className='leaf';
+    leaf.textContent=emojis[Math.floor(Math.random()*emojis.length)];
+    leaf.style.left=Math.random()*100+'%';
+    leaf.style.animationDuration=(8+Math.random()*10)+'s';
+    leaf.style.animationDelay=(-Math.random()*10)+'s';
+    leaf.style.fontSize=(1.2+Math.random()*1.5)+'rem';
+    container.appendChild(leaf);
+  }
+}
+createLeaves();
+drawPreview&&false; // preview only on world screen open
+</script>
+</body>
+</html>
