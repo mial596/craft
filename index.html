@@ -7,19 +7,16 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>WildCraft 🌿 v10</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&family=Press+Start+2P&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap');
 :root{
   --g:#4ecb71;--dg:#27ae60;--g2:#6ee89a;--gold:#ffd700;--amber:#ffa500;
   --red:#e74c3c;--blue:#3498db;--pu:#9b59b6;
-  --cyan:#00e5ff;--pink:#ff4081;--orange:#ff6d00;
   --ui:rgba(7,18,10,.96);--bdr:rgba(78,203,113,.3);--R:14px;
   --safe-l:env(safe-area-inset-left,0px);--safe-r:env(safe-area-inset-right,0px);
   --safe-b:env(safe-area-inset-bottom,0px);
   --shadow-g:0 4px 24px rgba(78,203,113,.2);
-  --card-bg:rgba(6,14,8,.97);
-  --card-border:rgba(78,203,113,.28);
-  --shop-bg:rgba(4,8,18,.97);
-  --coin:#f5c518;
+  --card-bg:rgba(6,14,8,.95);
+  --card-border:rgba(78,203,113,.22);
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
 html,body{width:100%;height:100%;overflow:hidden;background:#040c06;font-family:'Nunito',sans-serif;touch-action:none}
@@ -224,97 +221,73 @@ canvas{position:absolute;top:0;left:0;image-rendering:pixelated;touch-action:non
 #invBtn:hover{border-color:var(--g);box-shadow:0 0 8px rgba(78,203,113,.25)}
 #invBtn.on{border-color:var(--gold);background:rgba(255,215,0,.07)}
 
-/* ─── DLC / SHOP PANEL (in-game overlay) ─── */
+/* ─── DLC & STORE PANEL ─── */
 #dlcPanel {
   position: absolute;
-  top: 50%;left: 50%;
+  top: 50%;
+  left: 50%;
   transform: translate(-50%, -50%);
-  width: min(620px, 96vw);
-  max-height: 82vh;
-  background: var(--shop-bg);
-  border: 2px solid rgba(155,89,182,.5);
-  border-radius: 18px;
+  width: min(550px, 95vw);
+  max-height: 80vh;
+  background: var(--card-bg);
+  border: 2px solid var(--pu); /* Color púrpura para DLCs */
+  border-radius: var(--R);
   z-index: 100;
   display: none;
   flex-direction: column;
-  box-shadow: 0 0 60px rgba(155,89,182,.25), 0 0 120px rgba(0,0,0,.6);
-  backdrop-filter: blur(24px);
-  overflow: hidden;
+  box-shadow: 0 0 40px rgba(155, 89, 182, 0.3);
+  backdrop-filter: blur(20px);
 }
+
 #dlcPanel.on { display: flex; animation: popIn 0.3s cubic-bezier(.34,1.56,.64,1); }
-.dlcShopHeader {
-  background: linear-gradient(135deg, rgba(155,89,182,.2), rgba(100,50,180,.1));
-  border-bottom: 1px solid rgba(155,89,182,.3);
-  padding: 16px 18px 12px;
-  display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
-}
-.dlcShopTitle { font-family:'Fredoka One',cursive; font-size: 18px;
-  background: linear-gradient(135deg,#c084fc,#a78bfa,#818cf8);
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text; }
-.dlcCoinsDisplay {
-  display: flex; align-items: center; gap: 6px;
-  background: rgba(245,197,24,.1); border: 1px solid rgba(245,197,24,.3);
-  border-radius: 20px; padding: 5px 12px;
-}
-.dlcCoinsDisplay span { font-family:'Fredoka One',cursive; font-size:14px; color: var(--coin); }
+
 .dlcGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(165px, 1fr));
-  gap: 10px; padding: 14px; overflow-y: auto;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+  padding: 15px;
+  overflow-y: auto;
 }
+
 .dlcCard {
-  background: linear-gradient(145deg,rgba(15,10,30,.9),rgba(8,5,18,.95));
-  border: 1.5px solid rgba(168,85,247,.22);
-  border-radius: 14px; padding: 14px 12px;
-  text-align: center; transition: all .18s; cursor: pointer;
-  box-shadow: 0 4px 16px rgba(0,0,0,.45); position: relative; overflow: hidden;
+  background: rgba(155, 89, 182, 0.1);
+  border: 1.5px solid rgba(155, 89, 182, 0.2);
+  border-radius: 12px;
+  padding: 12px;
+  text-align: center;
+  transition: 0.2s;
+  cursor: pointer;
 }
-.dlcCard::before {
-  content:''; position:absolute; top:0;left:0;right:0;height:1px;
-  background: linear-gradient(90deg,transparent,rgba(168,85,247,.4),transparent);
+
+.dlcCard:hover {
+  background: rgba(155, 89, 182, 0.2);
+  border-color: var(--pu);
+  transform: translateY(-3px);
 }
-.dlcCard:hover { border-color: rgba(168,85,247,.6); transform: translateY(-2px);
-  box-shadow: 0 8px 28px rgba(168,85,247,.2); }
-.dlcCard.owned { border-color:rgba(78,203,113,.45);
-  background: linear-gradient(145deg,rgba(10,22,14,.9),rgba(5,14,8,.95)); }
-.dlcCard.owned::before { background: linear-gradient(90deg,transparent,rgba(78,203,113,.35),transparent); }
-.dlcBadge { position:absolute;top:7px;right:7px;font-size:7px;font-weight:900;
-  padding:2px 6px;border-radius:20px;letter-spacing:.5px;
-  background:rgba(231,76,60,.25);color:#f08;border:1px solid rgba(231,76,60,.4); }
-.dlcBadge.new { background:rgba(78,203,113,.2);color:var(--g);border-color:rgba(78,203,113,.4); }
-.dlcBadge.popular { background:rgba(255,215,0,.18);color:var(--gold);border-color:rgba(255,215,0,.4); }
-.dlcIcon { font-size: 32px; display:block; margin: 4px 0 8px; filter:drop-shadow(0 2px 8px rgba(0,0,0,.4)); }
-.dlcName { font-family:'Fredoka One',cursive; font-size:13px; color:#e8d8ff; margin-bottom:5px; }
-.dlcDesc { font-size:9px; color:#6a5a8a; line-height:1.55; margin-bottom:8px; }
-.dlcPriceRow { display:flex; align-items:center; justify-content:center; gap:5px; margin-bottom:8px; }
-.dlcCoinIcon { font-size:13px; }
-.dlcPriceAmt { font-family:'Fredoka One',cursive; font-size:15px; color:var(--coin); }
-.dlcPriceFiat { font-size:8px; color:#4a3a6a; }
-.dlcBuy {
-  width: 100%; padding: 7px 0; border-radius: 20px; border: none; cursor: pointer;
-  font-family:'Fredoka One',cursive; font-size:11px; transition: all .15s;
-  background: linear-gradient(135deg,#9b59b6,#6c3483);
-  color:#fff; box-shadow: 0 3px 10px rgba(155,89,182,.3);
+
+.dlcIcon { font-size: 32px; margin-bottom: 8px; display: block; }
+.dlcName { font-family: 'Fredoka One', cursive; color: #fff; font-size: 13px; }
+.dlcPrice { color: var(--gold); font-weight: 800; font-size: 11px; margin-top: 4px; }
+.dlcOwned { color: var(--g); font-size: 10px; font-weight: 800; text-transform: uppercase; }
+
+/* ─── MEJORAS EN INVENTARIO ─── */
+.invSlot {
+  background: rgba(20, 40, 25, 0.6); /* Fondo más visible */
+  border: 1.5px solid rgba(78, 203, 113, 0.2);
 }
-.dlcBuy:hover { background: linear-gradient(135deg,#a855f7,#7e22ce); transform:translateY(-1px); }
-.dlcBuy.owned { background: rgba(78,203,113,.15); color:#4ecb71; cursor:default; border:1px solid rgba(78,203,113,.3); }
-.dlcBuy:disabled { opacity:.7; cursor:default; }
-.dlcFeatured {
-  margin: 0 14px 4px; padding:10px 14px; border-radius:12px;
-  background: linear-gradient(135deg,rgba(168,85,247,.08),rgba(99,102,241,.08));
-  border: 1px solid rgba(168,85,247,.2); font-size:9px; color:#6a5a9a;
-  display:flex; align-items:center; gap:8px;
+
+.invSlot:hover {
+  background: rgba(78, 203, 113, 0.15);
+  border-color: var(--g);
+  box-shadow: 0 0 15px rgba(78, 203, 113, 0.2);
 }
-.dlcFeatured b { color:#a78bfa; }
-/* Coin shop balance display (top HUD) */
-#coinBal {
-  display:flex; align-items:center; gap:3px;
-  font-family:'Fredoka One',cursive; font-size:9px; color:var(--coin);
-  background:rgba(245,197,24,.08); border:1px solid rgba(245,197,24,.2);
-  border-radius:12px; padding:2px 7px; margin-top:2px;
-  cursor:pointer; transition:.13s;
+
+/* ─── ARREGLO DE TEXTOS EN MÓVIL ─── */
+@media (max-width: 600px) {
+  .invGrid { grid-template-columns: repeat(5, 1fr); gap: 4px; }
+  .dlcGrid { grid-template-columns: repeat(2, 1fr); }
+  .invTitle { font-size: 14px; }
 }
-#coinBal:hover { background:rgba(245,197,24,.16); }
 
 /* ─── INVENTORY PANEL ─── */
 #invPanel{position:absolute;bottom:calc(clamp(38px,7.5vw,50px)+8px);left:50%;transform:translateX(-50%);
@@ -560,118 +533,6 @@ canvas{position:absolute;top:0;left:0;image-rendering:pixelated;touch-action:non
   box-shadow:0 0 14px rgba(78,203,113,.35),0 2px 10px rgba(0,0,0,.4)}
 .pauseTopBtn:active{transform:scale(.88)}
 
-/* ═══ CONTROLS PANEL ═══ */
-#ctrlPanel{position:absolute;inset:0;z-index:85;display:none;align-items:center;justify-content:center;
-  background:rgba(2,6,3,.8);backdrop-filter:blur(12px)}
-#ctrlPanel.on{display:flex;animation:fadeIn .2s ease}
-.ctrlBox{background:linear-gradient(160deg,rgba(6,16,8,.99),rgba(3,8,5,.99));
-  border:1.5px solid rgba(78,203,113,.25);border-radius:20px;padding:22px 24px;
-  width:min(480px,92vw);max-height:90vh;overflow-y:auto;
-  box-shadow:0 20px 60px rgba(0,0,0,.8);display:flex;flex-direction:column;gap:10px;
-  animation:scaleIn .22s cubic-bezier(.34,1.56,.64,1)}
-.ctrlTit{font-family:'Fredoka One',cursive;font-size:18px;color:var(--g);text-align:center;
-  text-shadow:0 0 20px rgba(78,203,113,.4);margin-bottom:4px}
-.ctrlSection{background:rgba(0,0,0,.3);border-radius:12px;border:1px solid rgba(78,203,113,.1);overflow:hidden}
-.ctrlSectionTitle{font-family:'Fredoka One',cursive;font-size:11px;color:var(--g2);
-  padding:7px 12px;background:rgba(78,203,113,.06);border-bottom:1px solid rgba(78,203,113,.1);
-  letter-spacing:.5px}
-.ctrlRow{display:flex;align-items:center;justify-content:space-between;
-  padding:7px 12px;border-bottom:1px solid rgba(78,203,113,.05)}
-.ctrlRow:last-child{border-bottom:none}
-.ctrlAction{font-size:10px;color:#8adcaa;font-weight:700}
-.ctrlKey{display:flex;gap:4px;align-items:center}
-.key{background:rgba(0,0,0,.5);border:1.5px solid rgba(78,203,113,.25);border-radius:6px;
-  padding:3px 8px;font-family:'Fredoka One',cursive;font-size:10px;color:var(--g);
-  box-shadow:0 2px 0 rgba(0,0,0,.6),inset 0 1px 0 rgba(78,203,113,.1);min-width:22px;text-align:center}
-.key.wide{min-width:44px}
-.ctrlOr{font-size:8px;color:#2a4a2a;font-weight:700}
-
-/* ═══ CRAFT PANEL MEJORADO ═══ */
-#crP{position:absolute;bottom:calc(clamp(38px,7.5vw,50px)+8px);left:50%;transform:translateX(-50%);
-  width:min(520px,92vw);background:var(--card-bg);border:1.5px solid rgba(255,215,0,.25);
-  border-radius:var(--R) var(--R) 0 0;backdrop-filter:blur(18px);pointer-events:all;
-  display:none;z-index:26;max-height:55vh;overflow:hidden;
-  box-shadow:0 -8px 32px rgba(0,0,0,.75)}
-#crP.on{display:flex;flex-direction:column;animation:invUp .2s cubic-bezier(.34,1.56,.64,1)}
-.crH{display:flex;align-items:center;justify-content:space-between;padding:8px 14px 6px;
-  border-bottom:1px solid rgba(255,215,0,.1);position:sticky;top:0;background:var(--card-bg)}
-.crTitle{font-family:'Fredoka One',cursive;font-size:12px;color:var(--gold)}
-.crClose{font-size:9px;color:#5a4a1a;cursor:pointer;padding:3px 8px;border-radius:9px;
-  border:1px solid rgba(255,215,0,.2);transition:.13s;font-weight:800}
-.crClose:hover{background:rgba(255,215,0,.1);color:var(--gold)}
-#crL{overflow-y:auto;padding:8px;display:grid;grid-template-columns:1fr 1fr;gap:6px}
-.crI{border-radius:10px;padding:9px 10px;cursor:pointer;transition:all .14s;
-  display:flex;flex-direction:column;gap:3px;position:relative;border:1.5px solid transparent}
-.crI.y{background:rgba(255,215,0,.06);border-color:rgba(255,215,0,.18)}
-.crI.y:hover{background:rgba(255,215,0,.14);border-color:rgba(255,215,0,.4);transform:translateY(-1px)}
-.crI.n{background:rgba(0,0,0,.25);border-color:rgba(255,255,255,.05);opacity:.55}
-.crN{font-family:'Fredoka One',cursive;font-size:12px;color:#fff}
-.crC{font-size:8px;color:#8a7a4a;font-weight:700}
-.crGives{font-size:9px;color:var(--g);font-weight:800;margin-top:2px}
-.crBonus{position:absolute;top:4px;right:6px;font-size:7px;color:var(--gold);font-weight:900;
-  background:rgba(255,215,0,.1);border-radius:6px;padding:1px 5px}
-
-/* ═══ STATS BARS MEJORADAS ═══ */
-#statsH .sR { min-width:130px; }
-.bO{height:6px;background:rgba(0,0,0,.55);border-radius:20px;overflow:hidden;width:clamp(60px,10vw,90px)}
-.bI{height:100%;border-radius:20px;transition:width .4s}
-.bHP{background:linear-gradient(90deg,#b03030,#e74c3c,#ff6b6b)}
-.bFD{background:linear-gradient(90deg,#c04400,#e67e22,#f39c12)}
-.bEN{background:linear-gradient(90deg,#1a64a0,#3498db,#74b9ff)}
-.bVl{font-size:8px;color:#4a7a5a;min-width:22px;text-align:right;font-weight:800}
-
-/* ═══ HOTBAR MEJORADO ═══ */
-.hS{width:clamp(40px,7.5vw,52px);height:clamp(40px,7.5vw,52px);
-  background:rgba(0,0,0,.5);border:2px solid rgba(78,203,113,.14);border-radius:10px;
-  display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;
-  font-size:clamp(16px,3.2vw,20px);transition:.13s}
-.hS:hover{border-color:rgba(78,203,113,.5);background:rgba(78,203,113,.1);transform:translateY(-3px)}
-.hS.on{border-color:var(--gold);background:rgba(255,215,0,.12);
-  box-shadow:0 0 14px rgba(255,215,0,.35),inset 0 0 10px rgba(255,215,0,.07);transform:translateY(-4px)}
-
-/* ═══ IMPROVED INVENTORY ═══ */
-.invSlot{border-radius:9px;background:rgba(10,22,12,.7);border:1.5px solid rgba(78,203,113,.15);
-  aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
-  font-size:clamp(16px,3.2vw,20px);cursor:pointer;position:relative;transition:all .13s;
-  overflow:hidden}
-.invSlot:hover{background:rgba(78,203,113,.12);border-color:rgba(78,203,113,.45);transform:scale(1.04)}
-.invSlot.selected{border-color:var(--gold);background:rgba(255,215,0,.1);
-  box-shadow:0 0 10px rgba(255,215,0,.25)}
-.invSlot.inHotbar{border-color:rgba(78,203,113,.35)}
-.invSlot.invEmpty{background:rgba(0,0,0,.2);border-color:rgba(78,203,113,.06)}
-.invAmt{position:absolute;bottom:2px;right:3px;font-size:7px;color:var(--gold);font-weight:900;
-  text-shadow:0 1px 2px #000}
-.invName{position:absolute;bottom:1px;left:2px;font-size:6px;color:#3a6a3a;font-weight:700;
-  white-space:nowrap;overflow:hidden;max-width:80%}
-
-/* ═══ MUSIC VISUALIZER INDICATOR ═══ */
-#musicViz{display:flex;align-items:flex-end;gap:1.5px;height:12px;opacity:.7}
-.mvBar{width:2.5px;border-radius:2px;background:var(--g);animation:mvAnim 0.8s ease-in-out infinite}
-.mvBar:nth-child(1){animation-delay:0s;height:4px}
-.mvBar:nth-child(2){animation-delay:.15s;height:8px}
-.mvBar:nth-child(3){animation-delay:.3s;height:12px}
-.mvBar:nth-child(4){animation-delay:.45s;height:6px}
-.mvBar:nth-child(5){animation-delay:.6s;height:10px}
-@keyframes mvAnim{0%,100%{height:3px;opacity:.4}50%{opacity:1}}
-#musicViz.muted .mvBar{animation:none;height:3px;opacity:.2}
-
-/* ═══ TOAST MEJORADO ═══ */
-.toast{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
-  background:linear-gradient(135deg,rgba(6,14,8,.97),rgba(3,8,5,.98));
-  border:1.5px solid var(--g);border-radius:20px;color:#e8f5ec;
-  font-family:'Fredoka One',cursive;font-size:13px;padding:10px 22px;
-  z-index:200;pointer-events:none;animation:toastPop .4s cubic-bezier(.34,1.56,.64,1);
-  box-shadow:0 8px 32px rgba(0,0,0,.6),0 0 20px rgba(78,203,113,.15)}
-@keyframes toastPop{from{opacity:0;transform:translate(-50%,-50%) scale(.7)}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
-
-/* ═══ SHOP COIN COUNTER HUD ═══ */
-.shopHudBtn{display:flex;align-items:center;gap:4px;background:rgba(245,197,24,.08);
-  border:1px solid rgba(245,197,24,.25);border-radius:12px;padding:3px 8px;
-  cursor:pointer;transition:.13s;pointer-events:all}
-.shopHudBtn:hover{background:rgba(245,197,24,.18);border-color:rgba(245,197,24,.5)}
-.shopHudBtn span{font-family:'Fredoka One',cursive;font-size:9px;color:var(--coin)}
-
-
 </style>
 </head>
 <body>
@@ -685,7 +546,8 @@ canvas{position:absolute;top:0;left:0;image-rendering:pixelated;touch-action:non
 <canvas id="cBg"></canvas><canvas id="cW"></canvas>
 <canvas id="cE"></canvas><canvas id="cL"></canvas><canvas id="cFx"></canvas>
 <div id="lb" style="width:0"></div>
-<div id="audioBt" onclick="toggleAudio()" style="display:none">🔊</div>
+<!-- Audio btn hidden, merged into topBtns -->
+<div id="audioBt" onclick="toggleAudio()">🔊</div>
 
 <!-- ═══ INTRO ═══ -->
 <div class="scr" id="sI">
@@ -699,12 +561,9 @@ canvas{position:absolute;top:0;left:0;image-rendering:pixelated;touch-action:non
     <div class="iRight">
       <button class="bM" onclick="goWorldSelect()">🌍 Mis Mundos</button>
       <button class="bM" style="background:linear-gradient(135deg,#2980b9,#1a6899);box-shadow:0 4px 14px rgba(41,128,185,.44),0 2px 0 #0d3c5a" onclick="goMp()">👥 Multijugador</button>
-      <button class="bS" style="border-color:rgba(168,85,247,.4);color:#c084fc" onclick="goMods()">🧩 Tienda DLC</button>
-      <div style="display:flex;gap:7px">
-        <button class="bS" style="flex:1" onclick="toggleAudio()" id="audioToggle">🔊 Música</button>
-        <button class="bS" style="flex:1;border-color:rgba(78,203,113,.3);color:#8adcaa" onclick="openControls()">⌨ Controles</button>
-      </div>
-      <div class="iHint">WASD · E Recolectar · C Craftear · F Usar · I Inventario · ESC Pausa</div>
+      <button class="bS" style="border-color:rgba(168,85,247,.4);color:#c084fc" onclick="goMods()">🧩 Mods &amp; DLC</button>
+      <button class="bS" onclick="toggleAudio()" id="audioToggle">🔊 Música: Sí</button>
+      <div class="iHint">WASD/Joystick · E Recolectar · C Craftear · F Usar · I Inventario</div>
     </div>
   </div>
 </div>
@@ -782,14 +641,13 @@ canvas{position:absolute;top:0;left:0;image-rendering:pixelated;touch-action:non
 <!-- ═══ MODS / DLC SCREEN ═══ -->
 <div class="scr" id="sMods" style="display:none">
   <div class="modsWrap">
-    <div class="modsTit">🛒 Tienda DLC — WildCraft Store</div>
-    <div class="modInfo">Los DLCs se compran con <b>🪙 Fichas Arcadia</b>. Las fichas se consiguen en la plataforma Arcadia. En multijugador, todos disfrutan los DLCs del <b>anfitrión</b>.</div>
-    <div style="display:flex;align-items:center;gap:10px;margin:-4px 0 4px">
-      <div style="background:rgba(245,197,24,.1);border:1px solid rgba(245,197,24,.3);border-radius:14px;padding:7px 16px;display:flex;align-items:center;gap:8px">
-        <span style="font-size:18px">🪙</span>
-        <div><div style="font-family:'Fredoka One',cursive;font-size:16px;color:var(--coin)" id="shopCoinDisplay">—</div><div style="font-size:8px;color:#5a4a1a">Fichas Arcadia</div></div>
+    <div class="modsTit">🧩 Mods &amp; DLC — Arcadia Store</div>
+    <div class="modInfo">DLCs con <b>🪙 Fichas Arcadia</b>. En multijugador todos disfrutan los DLCs del anfitrión.</div>
+    <div style="display:flex;align-items:center;gap:8px;margin:0 0 8px;width:min(580px,96vw)">
+      <div style="background:rgba(245,197,24,.12);border:1px solid rgba(245,197,24,.3);border-radius:12px;padding:6px 14px;display:flex;align-items:center;gap:6px">
+        <span>🪙</span><b style="font-size:15px;color:#f5c518" id="dlcCoinCount">—</b><span style="font-size:9px;color:#888">fichas</span>
       </div>
-      <button onclick="Arcadia.openStore()" style="flex:1;padding:8px 12px;background:linear-gradient(135deg,#a78bfa,#7c3aed);border:none;border-radius:10px;color:#fff;font-family:'Fredoka One',cursive;font-size:12px;cursor:pointer">🏪 Conseguir fichas</button>
+      <button onclick="Arcadia.openStore()" style="flex:1;padding:7px 10px;background:linear-gradient(135deg,#7c3aed,#a78bfa);border:none;border-radius:10px;color:#fff;font-size:11px;cursor:pointer;font-weight:700">🏪 Conseguir fichas</button>
     </div>
     <div class="modsGrid" id="dlcGrid"></div>
     <button class="bS" onclick="goIntro()" style="margin-top:4px">← Volver</button>
@@ -820,46 +678,6 @@ canvas{position:absolute;top:0;left:0;image-rendering:pixelated;touch-action:non
   </div>
 </div>
 
-<!-- ═══ CONTROLS PANEL ═══ -->
-<div id="ctrlPanel">
-  <div class="ctrlBox">
-    <div class="ctrlTit">⌨ Controles</div>
-    <div class="ctrlSection">
-      <div class="ctrlSectionTitle">🎮 MOVIMIENTO</div>
-      <div class="ctrlRow"><span class="ctrlAction">Mover arriba</span><div class="ctrlKey"><div class="key">W</div><div class="ctrlOr">o</div><div class="key">↑</div></div></div>
-      <div class="ctrlRow"><span class="ctrlAction">Mover abajo</span><div class="ctrlKey"><div class="key">S</div><div class="ctrlOr">o</div><div class="key">↓</div></div></div>
-      <div class="ctrlRow"><span class="ctrlAction">Mover izquierda</span><div class="ctrlKey"><div class="key">A</div><div class="ctrlOr">o</div><div class="key">←</div></div></div>
-      <div class="ctrlRow"><span class="ctrlAction">Mover derecha</span><div class="ctrlKey"><div class="key">D</div><div class="ctrlOr">o</div><div class="key">→</div></div></div>
-    </div>
-    <div class="ctrlSection">
-      <div class="ctrlSectionTitle">⚒ ACCIONES</div>
-      <div class="ctrlRow"><span class="ctrlAction">Recolectar / Cazar</span><div class="ctrlKey"><div class="key">E</div></div></div>
-      <div class="ctrlRow"><span class="ctrlAction">Usar objeto</span><div class="ctrlKey"><div class="key">F</div></div></div>
-      <div class="ctrlRow"><span class="ctrlAction">Abrir Crafteo</span><div class="ctrlKey"><div class="key">C</div></div></div>
-      <div class="ctrlRow"><span class="ctrlAction">Abrir Inventario</span><div class="ctrlKey"><div class="key">I</div></div></div>
-    </div>
-    <div class="ctrlSection">
-      <div class="ctrlSectionTitle">🎒 HOTBAR</div>
-      <div class="ctrlRow"><span class="ctrlAction">Slot 1-8</span><div class="ctrlKey"><div class="key">1</div><div class="ctrlOr">-</div><div class="key">8</div></div></div>
-      <div class="ctrlRow"><span class="ctrlAction">Scroll para cambiar slot</span><div class="ctrlKey"><div class="key wide">Scroll</div></div></div>
-    </div>
-    <div class="ctrlSection">
-      <div class="ctrlSectionTitle">📋 SISTEMA</div>
-      <div class="ctrlRow"><span class="ctrlAction">Pausa / Menú</span><div class="ctrlKey"><div class="key wide">ESC</div></div></div>
-      <div class="ctrlRow"><span class="ctrlAction">Modo móvil</span><div class="ctrlKey"><div class="key wide">Joystick</div></div></div>
-    </div>
-    <div class="ctrlSection">
-      <div class="ctrlSectionTitle">⚗️ CRAFTEO — ITEMS ÚTILES</div>
-      <div class="ctrlRow"><span class="ctrlAction">🔦 Antorcha → Luz nocturna</span><div class="ctrlKey"><div class="key" style="font-size:7px">🪵×2 🧵×1</div></div></div>
-      <div class="ctrlRow"><span class="ctrlAction">🪓 Hacha → Tala 3× rápido</span><div class="ctrlKey"><div class="key" style="font-size:7px">🪵×3 🪨×2</div></div></div>
-      <div class="ctrlRow"><span class="ctrlAction">⛏ Pico → Mina 3× rápido</span><div class="ctrlKey"><div class="key" style="font-size:7px">🪵×2 🪨×3</div></div></div>
-      <div class="ctrlRow"><span class="ctrlAction">🏮 Linterna → Luz +170px</span><div class="ctrlKey"><div class="key" style="font-size:7px">💎×1 🔶×2</div></div></div>
-      <div class="ctrlRow"><span class="ctrlAction">⚔ Espada → Más daño</span><div class="ctrlKey"><div class="key" style="font-size:7px">🔩×4 🪵×2</div></div></div>
-    </div>
-    <button class="bM" onclick="closeControls()" style="width:100%;margin-top:4px">✔ Entendido</button>
-  </div>
-</div>
-
 <!-- ═══ PAUSE MENU ═══ -->
 <div id="pauseMenu">
   <div class="pauseBox">
@@ -873,11 +691,7 @@ canvas{position:absolute;top:0;left:0;image-rendering:pixelated;touch-action:non
     <div class="pauseDlcs" id="pauseDlcInfo"></div>
     <div style="display:flex;flex-direction:column;gap:7px">
       <button class="bM" onclick="resumeGame()" style="font-size:12px">▶ Continuar</button>
-      <div style="display:flex;gap:7px">
-        <button class="bS" onclick="openSkinFromPause()" style="flex:1;font-size:11px">🎨 Personalizar</button>
-        <button class="bS" onclick="closePause();setTimeout(openControls,200)" style="flex:1;font-size:11px">⌨ Controles</button>
-      </div>
-      <button class="bS" onclick="openShopFromPause()" style="font-size:11px;border-color:rgba(168,85,247,.35);color:#c084fc">🛒 Tienda DLC</button>
+      <button class="bS" onclick="openSkinFromPause()" style="font-size:11px">🎨 Personalizar</button>
       <button class="bS" onclick="saveCurrentWorld();toast('💾 Guardado');resumeGame()" style="font-size:11px">💾 Guardar</button>
       <button class="bS" onclick="quitToMenu()" style="font-size:11px;border-color:rgba(231,76,60,.3);color:#e98080">🏠 Menú Principal</button>
     </div>
@@ -908,14 +722,10 @@ canvas{position:absolute;top:0;left:0;image-rendering:pixelated;touch-action:non
           <div class="pNm" id="pNm">Viajero</div>
           <div class="pXp">⭐<span id="xpV">0</span> Lv<span id="lvV">1</span></div>
           <div class="xO"><div class="xI" id="xpI" style="width:0%"></div></div>
-          <div class="shopHudBtn" onclick="openInGameShop()" title="Tienda DLC">
-            <span>🪙</span><span id="hudCoins">0</span>
-          </div>
+          <div class="pPs" id="posV">0,0</div>
         </div>
         <div id="topBtns" style="position:static;display:flex;flex-direction:column;gap:3px">
-          <div class="topBtn" id="audioBt2" title="Música" onclick="toggleAudio()">
-            <div id="musicViz"><div class="mvBar"></div><div class="mvBar"></div><div class="mvBar"></div><div class="mvBar"></div><div class="mvBar"></div></div>
-          </div>
+          <div class="topBtn" id="audioBt2" title="Música" onclick="toggleAudio()">🔊</div>
           <div class="pauseTopBtn" onclick="openPause()" title="Pausa (ESC)">⏸</div>
         </div>
       </div>
@@ -941,7 +751,7 @@ canvas{position:absolute;top:0;left:0;image-rendering:pixelated;touch-action:non
   </div>
 
   <div id="gBar"><div class="gbW"><div class="gbL"><span id="gbEm">🌲</span><span id="gbNm">Árbol</span></div><div class="gbO"><div class="gbI" id="gbFl" style="width:0%"></div></div><div class="gbH" id="gbHp">3/3</div></div></div>
-  <div id="crP"><div class="crH"><span class="crTitle">⚒ Craftear</span><span class="crClose" onclick="toggleCraft()">✕</span></div><div id="crL"></div></div>
+  <div id="crP"><div class="crT">⚒ Craftear</div><div id="crL"></div></div>
   <div id="mpP"><div class="mpPT">👥<span class="mpCnt" id="mpCnt">0</span></div><div id="mpList"></div><div class="mpSy" id="mpSy">—</div></div>
   <div id="msgL"></div>
   <div id="ttp"><div class="ttN" id="ttN"></div><div class="ttD" id="ttD"></div><div class="ttU" id="ttU"></div></div>
@@ -972,12 +782,126 @@ canvas{position:absolute;top:0;left:0;image-rendering:pixelated;touch-action:non
 </div><!-- #G -->
 
 <script type="module">
+'use strict';
 // ═══════════════════════════════════════════════════════
-//  ARCADIA SDK — window.Arcadia provided by host platform
-//  API: login(), save(str), load(), unlock(id),
-//       buy(productId), openStore(), setRankingValue(n),
-//       onSaveRequest(cb), getMultiplayer()
+//  ARCADIA BRIDGE
 // ═══════════════════════════════════════════════════════
+// Arcadia provides window.Arcadia — we just add the missing methods
+
+// ═══════════════════════════════════════════════════════
+//  ARCADIA MULTIPLAYER SDK (WebSocket + LocalStorage fallback)
+// ═══════════════════════════════════════════════════════
+class ArcadiaMultiplayer {
+  constructor() {
+    this.socket   = null;    // Socket.io in production: wss://mp.arcadia.gg
+    this.roomId   = null;
+    this.callbacks = {};     // matches spec: callbacks object
+
+    // Internal
+    this._myId    = null;
+    this._pollId  = null;
+    this._lastSeen = {};
+  }
+
+  async connect(roomId, metadata = {}) {
+    this.roomId = roomId;
+    this._myId  = metadata.userId || ('u_' + Math.random().toString(36).slice(2, 9));
+    console.log('[ArcadiaMultiplayer] Conectando a sala:', roomId, 'como', this._myId);
+    // Production: this.socket = io('wss://mp.arcadia.gg', { query: { roomId, ...metadata } });
+    this._startBus();
+    this._emit('user-joined', { userId: this._myId, ...metadata });
+  }
+
+  send(event, data) {
+    if (!this.roomId || !this._myId) return;
+    try {
+      const key = `arc_${this.roomId}_${this._myId}_${event}`;
+      const pkg = JSON.stringify({ event, data, from: this._myId, ts: Date.now() });
+      localStorage.setItem(key, pkg);
+      const bk  = `arc_${this.roomId}_idx`;
+      const arr = JSON.parse(localStorage.getItem(bk) || '[]');
+      const ei  = arr.findIndex(e => e.k === key);
+      if (ei >= 0) arr[ei].ts = Date.now();
+      else { arr.push({ k: key, ts: Date.now() }); if (arr.length > 80) arr.shift(); }
+      localStorage.setItem(bk, JSON.stringify(arr));
+    } catch(e) {}
+  }
+
+  on(event, callback) {
+    if (!this.callbacks[event]) this.callbacks[event] = [];
+    this.callbacks[event].push(callback);
+  }
+
+  _emit(event, payload) {
+    (this.callbacks[event] || []).forEach(cb => { try { cb(payload); } catch(e) {} });
+  }
+
+  _startBus() {
+    this._pollId = setInterval(() => {
+      try {
+        const bk  = `arc_${this.roomId}_idx`;
+        const arr = JSON.parse(localStorage.getItem(bk) || '[]');
+        const now = Date.now();
+        arr.filter(e => e.ts > now - 6000 && !e.k.includes(`_${this._myId}_`))
+           .forEach(entry => {
+             if (this._lastSeen[entry.k] === entry.ts) return;
+             this._lastSeen[entry.k] = entry.ts;
+             try {
+               const pkg = JSON.parse(localStorage.getItem(entry.k) || 'null');
+               if (pkg && pkg.from !== this._myId)
+                 this._emit(pkg.event, { from: pkg.from, data: pkg.data });
+             } catch(e) {}
+           });
+        for (const k in this._lastSeen)
+          if (this._lastSeen[k] < now - 12000) delete this._lastSeen[k];
+      } catch(e) {}
+    }, 100); // 100ms → ~10 state updates/sec
+  }
+
+  disconnect() {
+    clearInterval(this._pollId);
+    try {
+      const bk  = `arc_${this.roomId}_idx`;
+      const arr = JSON.parse(localStorage.getItem(bk) || '[]');
+      localStorage.setItem(bk, JSON.stringify(arr.filter(e => !e.k.includes(`_${this._myId}_`))));
+    } catch(e) {}
+    this._emit('user-left', { userId: this._myId });
+  }
+}
+
+// Extend Arcadia with buy() and openStore() if not present
+if(window.Arcadia && !window.Arcadia.buy){
+  window.Arcadia.buy = (productId) => window.Arcadia._s('ARCADIA_BUY_PRODUCT',{productId});
+}
+if(window.Arcadia && !window.Arcadia.openStore){
+  window.Arcadia.openStore = () => window.Arcadia._s('ARCADIA_OPEN_STORE');
+}
+if(window.Arcadia && !window.Arcadia.setRankingValue){
+  window.Arcadia.setRankingValue = (value) => window.Arcadia._s('ARCADIA_UPDATE_RANKING',{value});
+}
+if(window.Arcadia && !window.Arcadia.onSaveRequest){
+  window.Arcadia.onSaveRequest = (cb) => {
+    window.addEventListener('message', e => { if(e.data?.type==='ARCADIA_REQUEST_SAVE') cb(); });
+  };
+}
+// Fallback if Arcadia not loaded yet
+if(!window.Arcadia){
+  const _fc={};
+  window.addEventListener('message',e=>{const{requestId:id,payload}=e.data||{};if(id&&_fc[id]){_fc[id](payload);delete _fc[id];}});
+  const _fs=(type,payload={})=>new Promise(r=>{const id=Date.now().toString(36)+Math.random().toString(36).slice(2);_fc[id]=r;window.parent.postMessage({type,payload,requestId:id},'*');setTimeout(()=>{if(_fc[id]){_fc[id]({success:false,offline:true});delete _fc[id];}},2000);});
+  window.Arcadia={
+    login:()=>_fs('ARCADIA_LOGIN'),
+    save:d=>_fs('ARCADIA_SAVE_DATA',{data:d}),
+    load:()=>_fs('ARCADIA_LOAD_DATA'),
+    unlock:id=>_fs('ARCADIA_UNLOCK_ACHIEVEMENT',{achievementId:id}),
+    buy:pid=>_fs('ARCADIA_BUY_PRODUCT',{productId:pid}),
+    openStore:()=>_fs('ARCADIA_OPEN_STORE'),
+    setRankingValue:v=>_fs('ARCADIA_UPDATE_RANKING',{value:v}),
+    onSaveRequest:cb=>window.addEventListener('message',e=>{if(e.data?.type==='ARCADIA_REQUEST_SAVE')cb();}),
+    getMultiplayer:async()=>new ArcadiaMultiplayer(),
+    _s:_fs
+  };
+}
 
 // ═══════════════════════════════════════════════════════
 //  MULTI-WORLD SAVE SYSTEM  (up to 5 slots)
@@ -1066,8 +990,7 @@ function saveCurrentWorld(){
     hbar:P.hbar, savedAt:Date.now()
   };
   WDB.save(activeSlot,data);
-  // Cloud backup via Arcadia
-  try{ Arcadia.save(JSON.stringify({slot:activeSlot,...data})); }catch(e){}
+  try{Arcadia.save(JSON.stringify({slot:activeSlot,...data}));}catch(e){}
 }
 
 // ═══════════════════════════════════════════════════════
@@ -1330,76 +1253,41 @@ function pollLobby(){
 //  AUDIO ENGINE
 // ═══════════════════════════════════════════════════════
 const Audio={
-  ctx:null,enabled:true,mGain:null,sGain:null,bgOn:false,_phase:0,
-  init(){try{this.ctx=new(window.AudioContext||window.webkitAudioContext)();this.mGain=this.ctx.createGain();this.mGain.gain.value=.18;this.mGain.connect(this.ctx.destination);this.sGain=this.ctx.createGain();this.sGain.gain.value=.55;this.sGain.connect(this.ctx.destination);}catch(e){this.enabled=false;}},
+  ctx:null,enabled:true,mGain:null,sGain:null,bgOn:false,
+  init(){try{this.ctx=new(window.AudioContext||window.webkitAudioContext)();this.mGain=this.ctx.createGain();this.mGain.gain.value=.16;this.mGain.connect(this.ctx.destination);this.sGain=this.ctx.createGain();this.sGain.gain.value=.52;this.sGain.connect(this.ctx.destination);}catch(e){this.enabled=false;}},
   resume(){if(this.ctx?.state==='suspended')this.ctx.resume();},
   startMusic(){if(!this.ctx||!this.enabled||this.bgOn)return;this.bgOn=true;this._amb();},
   _amb(){
     if(!this.enabled||!this.bgOn)return;
     const ctx=this.ctx,g=this.mGain,t=ctx.currentTime;
-    this._phase=(this._phase+1)%3;
-    // Rotate through 3 musical modes for variety
-    const modes=[[261.6,329.6,392,523.3],[293.7,349.2,440,587.3],[246.9,311.1,369.9,493.9]];
-    const freqs=modes[this._phase];
-    freqs.forEach((f,i)=>{const o=ctx.createOscillator(),og=ctx.createGain();
-      o.type=i%2===0?'sine':'triangle';
-      o.frequency.value=f*(1+Math.random()*.003);
-      og.gain.setValueAtTime(0,t);og.gain.linearRampToValueAtTime(.045/(i+1),t+2.5);
-      og.gain.linearRampToValueAtTime(.03/(i+1),t+10);og.gain.linearRampToValueAtTime(0,t+20);
-      o.connect(og);og.connect(g);o.start(t);o.stop(t+20);});
-    // Bass drone
-    const dr=ctx.createOscillator(),dg=ctx.createGain();dr.type='sine';
-    dr.frequency.value=freqs[0]/2*(0.95+Math.random()*.08);
-    dg.gain.setValueAtTime(0,t);dg.gain.linearRampToValueAtTime(.04,t+3);
-    dg.gain.linearRampToValueAtTime(0,t+20);dr.connect(dg);dg.connect(g);dr.start(t);dr.stop(t+20);
-    // Gentle melody arp
-    const mNotes=[freqs[2],freqs[3],freqs[2],freqs[0]*2,freqs[1]*2];
-    mNotes.forEach((f,i)=>{const delay=t+4+i*1.4+Math.random()*0.5;
-      const mo=ctx.createOscillator(),mg2=ctx.createGain();mo.type='sine';mo.frequency.value=f;
-      mg2.gain.setValueAtTime(0,delay);mg2.gain.linearRampToValueAtTime(.03,delay+.15);
-      mg2.gain.linearRampToValueAtTime(0,delay+.6);mo.connect(mg2);mg2.connect(g);mo.start(delay);mo.stop(delay+.7);});
-    // Birds
-    if(Math.random()<.6)this._bird(t+1+Math.random()*7);
-    if(Math.random()<.4)this._bird(t+9+Math.random()*6);
-    if(Math.random()<.25)this._bird(t+14+Math.random()*4);
-    setTimeout(()=>{if(this.bgOn)this._amb();},17000);
+    [261.6,329.6,392,523.3].forEach((f,i)=>{const o=ctx.createOscillator(),og=ctx.createGain();o.type='sine';o.frequency.value=f*(1+Math.random()*.004);og.gain.setValueAtTime(0,t);og.gain.linearRampToValueAtTime(.055/(i+1),t+2);og.gain.linearRampToValueAtTime(0,t+18);o.connect(og);og.connect(g);o.start(t);o.stop(t+18);});
+    const dr=ctx.createOscillator(),dg=ctx.createGain();dr.type='triangle';dr.frequency.value=65+Math.random()*10;dg.gain.setValueAtTime(0,t);dg.gain.linearRampToValueAtTime(.035,t+3);dg.gain.linearRampToValueAtTime(0,t+18);dr.connect(dg);dg.connect(g);dr.start(t);dr.stop(t+18);
+    if(Math.random()<.55)this._bird(t+2+Math.random()*8);
+    if(Math.random()<.35)this._bird(t+11+Math.random()*5);
+    setTimeout(()=>{if(this.bgOn)this._amb();},15500);
   },
-  _bird(w){if(!this.ctx||!this.enabled)return;const ctx=this.ctx,g=this.sGain;
-    const trills=2+Math.floor(Math.random()*3);
-    for(let i=0;i<trills;i++){const delay=w+i*0.18;
-      const o=ctx.createOscillator(),og=ctx.createGain();o.type='sine';
-      const f=600+Math.random()*900;o.frequency.setValueAtTime(f,delay);
-      o.frequency.linearRampToValueAtTime(f*(1.1+Math.random()*.25),delay+.08);
-      o.frequency.linearRampToValueAtTime(f*0.88,delay+.18);
-      og.gain.setValueAtTime(0,delay);og.gain.linearRampToValueAtTime(.08,delay+.04);
-      og.gain.linearRampToValueAtTime(0,delay+.22);o.connect(og);og.connect(g);o.start(delay);o.stop(delay+.25);}},
+  _bird(w){if(!this.ctx||!this.enabled)return;const ctx=this.ctx,g=this.sGain,o=ctx.createOscillator(),og=ctx.createGain();o.type='sine';const f=800+Math.random()*800;o.frequency.setValueAtTime(f,w);o.frequency.linearRampToValueAtTime(f*1.3,w+.1);o.frequency.linearRampToValueAtTime(f*.9,w+.2);og.gain.setValueAtTime(0,w);og.gain.linearRampToValueAtTime(.1,w+.05);og.gain.linearRampToValueAtTime(0,w+.25);o.connect(og);og.connect(g);o.start(w);o.stop(w+.3);},
   sfx(type){
     if(!this.ctx||!this.enabled)return;this.resume();
     const ctx=this.ctx,g=this.sGain,t=ctx.currentTime;
-    const osc=(f,tp='triangle',dur=.18,vol=.2,slide=0,delay=0)=>{const o=ctx.createOscillator(),og=ctx.createGain();o.type=tp;o.frequency.setValueAtTime(f,t+delay);if(slide)o.frequency.linearRampToValueAtTime(slide,t+delay+dur);og.gain.setValueAtTime(0,t+delay);og.gain.linearRampToValueAtTime(vol,t+delay+.02);og.gain.linearRampToValueAtTime(0,t+delay+dur);o.connect(og);og.connect(g);o.start(t+delay);o.stop(t+delay+dur+.05);};
-    const noise=(dur=.15,vol=.3,decay=2,del=0)=>{const buf=ctx.createBuffer(1,ctx.sampleRate*dur,ctx.sampleRate),d=buf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,decay);const s=ctx.createBufferSource(),bg=ctx.createGain();bg.gain.value=vol;s.buffer=buf;s.connect(bg);bg.connect(g);s.start(t+del);};
+    const osc=(f,tp='triangle',dur=.18,vol=.2,slide=0)=>{const o=ctx.createOscillator(),og=ctx.createGain();o.type=tp;o.frequency.setValueAtTime(f,t);if(slide)o.frequency.linearRampToValueAtTime(slide,t+dur);og.gain.setValueAtTime(0,t);og.gain.linearRampToValueAtTime(vol,t+.02);og.gain.linearRampToValueAtTime(0,t+dur);o.connect(og);og.connect(g);o.start(t);o.stop(t+dur+.05);};
+    const noise=(dur=.15,vol=.3,decay=2)=>{const buf=ctx.createBuffer(1,ctx.sampleRate*dur,ctx.sampleRate),d=buf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,decay);const s=ctx.createBufferSource(),bg=ctx.createGain();bg.gain.value=vol;s.buffer=buf;s.connect(bg);bg.connect(g);s.start(t);};
     switch(type){
-      case 'gather':osc(440,'triangle',.12,.2,660);osc(660,'sine',.1,.08,0,.1);break;
-      case 'break':noise(.12,.32,2);noise(.08,.18,3,.1);break;
-      case 'craft':[0,.12,.24].forEach((d,i)=>{osc(523+i*131,'square',.12,.12,0,d);});break;
-      case 'eat':osc(880,'sine',.2,.16,440);osc(1047,'sine',.12,.08,0,.15);break;
-      case 'levelup':[523,659,784,1047,1319].forEach((f,i)=>{osc(f,'triangle',.18,.18,0,i*.1);});break;
-      case 'step':osc(55+Math.random()*25,'sine',.07,.035);break;
-      case 'mp_join':osc(660,'sine',.16,.14);osc(880,'sine',.16,.14,0,.16);break;
-      case 'coin':osc(1200,'sine',.08,.12,1600);osc(1600,'sine',.06,.08,0,.06);break;
-      case 'hurt':noise(.1,.4,1);osc(180,'sawtooth',.15,.12,80);break;
-      case 'hunt':osc(300,'sawtooth',.1,.2,150);noise(.08,.25,2,.05);break;
+      case 'gather':osc(440,'triangle',.14,.22,660);break;
+      case 'break':noise(.15,.35,2.2);break;
+      case 'craft':[0,.12,.24].forEach((d,i)=>{const o=ctx.createOscillator(),og=ctx.createGain();o.type='square';o.frequency.value=523+i*131;og.gain.setValueAtTime(0,t+d);og.gain.linearRampToValueAtTime(.13,t+d+.03);og.gain.linearRampToValueAtTime(0,t+d+.12);o.connect(og);og.connect(g);o.start(t+d);o.stop(t+d+.15);});break;
+      case 'eat':osc(880,'sine',.22,.18,440);break;
+      case 'levelup':[523,659,784,1047].forEach((f,i)=>{const o=ctx.createOscillator(),og=ctx.createGain();o.type='triangle';o.frequency.value=f;og.gain.setValueAtTime(0,t+i*.12);og.gain.linearRampToValueAtTime(.2,t+i*.12+.04);og.gain.linearRampToValueAtTime(0,t+i*.12+.18);o.connect(og);og.connect(g);o.start(t+i*.12);o.stop(t+i*.12+.22);});break;
+      case 'step':{const o=ctx.createOscillator(),og=ctx.createGain();o.type='sine';o.frequency.value=60+Math.random()*40;og.gain.setValueAtTime(0,t);og.gain.linearRampToValueAtTime(.04,t+.02);og.gain.linearRampToValueAtTime(0,t+.07);o.connect(og);og.connect(g);o.start(t);o.stop(t+.1);}break;
+      case 'mp_join':osc(660,'sine',.18,.16);setTimeout(()=>osc(880,'sine',.18,.16),160);break;
     }
   },
-  toggle(){this.enabled=!this.enabled;
-    const viz=document.getElementById('musicViz');
-    if(this.enabled){this.bgOn=false;this.startMusic();if(this.mGain)this.mGain.gain.value=.18;if(viz)viz.classList.remove('muted');}
-    else{this.bgOn=false;if(this.mGain)this.mGain.gain.value=0;if(viz)viz.classList.add('muted');}
-    return this.enabled;}
+  toggle(){this.enabled=!this.enabled;if(this.enabled){this.bgOn=false;this.startMusic();if(this.mGain)this.mGain.gain.value=.16;}else{this.bgOn=false;if(this.mGain)this.mGain.gain.value=0;}return this.enabled;}
 };
 function toggleAudio(){
   const on=Audio.toggle();
-  const b=document.getElementById('audioToggle');if(b)b.textContent=(on?'🔊':'🔇')+' Música';
+  document.getElementById('audioBt').textContent=on?'🔊':'🔇';
+  const b=document.getElementById('audioToggle');if(b)b.textContent=(on?'🔊':'🔇')+' Música: '+(on?'Sí':'No');
 }
 
 // ═══════════════════════════════════════════════════════
@@ -1407,16 +1295,12 @@ function toggleAudio(){
 // ═══════════════════════════════════════════════════════
 const keys={};
 window.addEventListener('keydown',e=>{
-  // Don't intercept when typing in an input/textarea
-  const tag=document.activeElement?.tagName;
-  if(tag==='INPUT'||tag==='TEXTAREA')return;
   keys[e.code]=1;
-  if(document.getElementById('gUI')?.style.display==='none')return;
-  if(e.code==='KeyE'){tryGather();e.preventDefault();}
-  else if(e.code==='KeyC'){toggleCraft();e.preventDefault();}
-  else if(e.code==='KeyF'){useSelected();e.preventDefault();}
-  else if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','KeyW','KeyA','KeyS','KeyD'].includes(e.code)){e.preventDefault();}
-  else{for(let i=1;i<=8;i++)if(e.code===`Digit${i}`){setSlot(i-1);e.preventDefault();}}
+  if(e.code==='KeyE')tryGather();
+  if(e.code==='KeyC')toggleCraft();
+  if(e.code==='KeyF')useSelected();
+  for(let i=1;i<=8;i++)if(e.code===`Digit${i}`)setSlot(i-1);
+  e.preventDefault();
 });
 window.addEventListener('keyup',e=>keys[e.code]=0);
 
@@ -1564,65 +1448,56 @@ function renderInvPanel(){
 //  DLC SYSTEM
 // ═══════════════════════════════════════════════════════
 const DLC_CATALOG=[
-  {id:'dlc_fauna',    name:'Fauna Salvaje',    icon:'🦊', desc:'8 animales vivos: zorros, ciervos, conejos, osos, lobos, águilas. Se mueven por biomas reales.',price:300,tag:'Popular'},
-  {id:'dlc_underwater',name:'Mundo Submarino', icon:'🐠', desc:'Peces, algas, ostras y perlas bajo el agua. Rema con la balsa para explorar mares.',price:200,tag:'Nuevo'},
-  {id:'dlc_magic',    name:'Magia Arcana',     icon:'🔮', desc:'Runas, varita mágica, Elixir +80HP y Hechizo de Fuego. Recetas únicas.',price:300,tag:''},
-  {id:'dlc_desert_ruins',name:'Ruinas del Desierto',icon:'🏺',desc:'Tumbas, escarabajos de oro, llaves y la Espada Antigua (+3x daño).',price:150,tag:''},
-  {id:'dlc_winter',   name:'Tormenta de Invierno',icon:'❄️',desc:'Iglús, abrigo de piel, bolas de nieve y eventos árticos.',price:200,tag:''},
-  {id:'dlc_signs',    name:'Carteles y Decoración',icon:'🪧',desc:'Craftea carteles de madera/piedra, banderas y faroles. Personaliza tu mundo.',price:100,tag:''},
-  {id:'dlc_farming',  name:'Granja y Cultivos', icon:'🌾', desc:'Semillas de trigo y zanahoria, azada y pan artesanal. ¡Crea tu granja!',price:250,tag:''},
-  {id:'dlc_pirate',   name:'Costas Piratas',   icon:'🏴‍☠️',desc:'Brújula, cañón naval, ron y mapa del tesoro. Domina los mares.',price:300,tag:'Nuevo'},
+  {id:'dlc_fauna',    name:'Fauna Salvaje',    icon:'🦊', desc:'8 animales que se mueven por el mundo: zorros, ciervos, conejos, osos. Aparecen en biomas correctos.',price:'2.99',tag:'Popular'},
+  {id:'dlc_underwater',name:'Mundo Submarino', icon:'🐠', desc:'Peces exóticos bajo el agua, algas, cofres hundidos. Rema con la balsa.',price:'1.99',tag:'Nuevo'},
+  {id:'dlc_magic',    name:'Magia Arcana',     icon:'🔮', desc:'Runas, pociones mágicas, varita y Elixir. Recetas únicas de crafting.',price:'2.99',tag:''},
+  {id:'dlc_desert_ruins',name:'Ruinas del Desierto',icon:'🏺',desc:'Tumbas ocultas, trampas y armas antiguas en el desierto.',price:'1.49',tag:''},
+  {id:'dlc_winter',   name:'Tormenta de Invierno',icon:'❄️',desc:'Eventos de nieve, iglús, animales árticos y equipo térmico.',price:'1.99',tag:''},
+  {id:'dlc_signs',    name:'Carteles y Decoración',icon:'🪧',desc:'Craftea y coloca carteles, faroles y banderas en el mundo.',price:'0.99',tag:''},
+  {id:'dlc_farming',  name:'Granja y Cultivos', icon:'🌾', desc:'Semillas, azada, cultivos plantables y pan artesanal.',price:'2.49',tag:''},
+  {id:'dlc_pirate',   name:'Costas Piratas',   icon:'🏴‍☠️',desc:'Brújula, cañón, ron y mapa del tesoro. Explora los mares.',price:'2.99',tag:'Nuevo'},
 ];
 
 const DLC={
   owned:new Set(JSON.parse(localStorage.getItem('wc_dlc_owned')||'[]')),
-  arcCoins: null,      // populated from login()
-  ownedProducts: [],   // from login() user.ownedProducts
+  coins:null,        // from Arcadia login
+  ownedProducts:[],  // from Arcadia login user.ownedProducts
   has(id){return this.owned.has(id)||this.ownedProducts.includes(id);},
-
   initFromUser(user){
-    // Called after Arcadia.login() — sync owned products and coin balance
-    this.arcCoins = user.coins ?? null;
-    this.ownedProducts = user.ownedProducts || [];
-    // Auto-install any DLCs already purchased in Arcadia
+    this.coins = user.coins??null;
+    this.ownedProducts = user.ownedProducts||[];
+    // Auto-install DLCs already owned in Arcadia
     this.ownedProducts.forEach(pid=>{
       if(DLC_CATALOG.find(d=>d.id===pid)) this.owned.add(pid);
     });
     localStorage.setItem('wc_dlc_owned',JSON.stringify([...this.owned]));
     this.updateCoinUI();
+    if(this.ownedProducts.length) refreshDlcEffects();
   },
-
   updateCoinUI(){
-    const val = this.arcCoins!=null ? this.arcCoins : '—';
-    const el=document.getElementById('hudCoins'); if(el) el.textContent=val;
-    const el2=document.getElementById('shopCoinDisplay'); if(el2) el2.textContent=val;
+    const v=this.coins!=null?this.coins:'—';
+    const el=document.getElementById('dlcCoinCount');if(el)el.textContent=v;
   },
-
   async buy(id){
     const d=DLC_CATALOG.find(x=>x.id===id);
-    if(!d) return;
+    if(!d)return;
     if(this.has(id)){toast('✅ Ya tienes este DLC');return;}
-
-    const coins=this.arcCoins;
-    if(coins!==null && coins<d.price){
-      // Not enough coins — open Arcadia store so they can buy more
-      toast(`🪙 Necesitas ${d.price-coins} fichas más`);
-      Audio.sfx('break');
-      await Arcadia.openStore();
+    // If not enough coins, open Arcadia store
+    if(this.coins!==null && this.coins<d.price){
+      toast('🪙 Fichas insuficientes — abriendo tienda');
+      Arcadia.openStore();
       return;
     }
-
     // Purchase via Arcadia
-    const result = await Arcadia.buy(id);
-    if(result?.success){
-      this.arcCoins = result.newBalance ?? (coins!==null ? coins-d.price : null);
-      this.updateCoinUI();
+    const r=await Arcadia.buy(id);
+    if(r?.success){
+      this.coins=r.newBalance??this.coins;
       this._install(id,d);
+      this.updateCoinUI();
     } else {
       toast('❌ Compra no completada');
     }
   },
-
   _install(id,d){
     this.owned.add(id);
     localStorage.setItem('wc_dlc_owned',JSON.stringify([...this.owned]));
@@ -1631,7 +1506,6 @@ const DLC={
     toast(`🧩 ¡${d.icon} ${d.name} instalado!`);
     Audio.sfx('levelup');
   },
-
   getHostPack(){return[...this.owned];},
   applyHostPack(ids){ids.forEach(id=>this.owned.add(id));refreshDlcEffects();}
 };
@@ -1737,8 +1611,8 @@ function tryGatherAnimal(){
       for(const[id,amt] of Object.entries(a.loot))addItem(id,Math.max(1,Math.round(amt*(0.7+Math.random()*0.6))));
       gainXP(a.xp);
       spawnFX(a.x,a.y,a.e,'#ffd700');
-      Audio.sfx('hunt');
-      addMsg(`${a.e} ${a.n} cazado! +${a.xp}XP`);
+      Audio.sfx('break');
+      addMsg(`${a.e} ${a.n} cazado!`);
       // Respawn after delay
       setTimeout(()=>{a.alive=true;a.x=(40+Math.floor(Math.random()*(MW-80)))*TILE;a.y=(40+Math.floor(Math.random()*(MH-80)))*TILE;},30000);
       return true;
@@ -1881,55 +1755,29 @@ function refreshDlcEffects(){
   }
 }
 
-// Opens shop - shows Arcadia native store button + our DLC grid
-function openDlcShop(){
-  const grid=document.getElementById('dlcGrid');if(!grid)return;
-  DLC.updateCoinUI();
-  renderDlcGrid();
-}
-// Pure render — uses already-cached DLC.arcCoins, no fetch
 function renderDlcGrid(){
   const grid=document.getElementById('dlcGrid');if(!grid)return;
   DLC.updateCoinUI();
   grid.innerHTML='';
-  const coins=DLC.arcCoins;
+  const coins=DLC.coins;
   for(const d of DLC_CATALOG){
     const owned=DLC.has(d.id);
     const canAfford=coins===null||coins>=d.price;
     const card=document.createElement('div');
     card.className='dlcCard'+(owned?' owned':'');
-    let badgeHtml='';
-    if(d.tag==='Nuevo') badgeHtml=`<div class="dlcBadge new">NUEVO</div>`;
-    else if(d.tag==='Popular') badgeHtml=`<div class="dlcBadge popular">⭐ TOP</div>`;
-    card.innerHTML=`${badgeHtml}
+    let badge=d.tag?`<div class="dlcBadge${d.tag==='Nuevo'?' new':''}">${d.tag}</div>`:'';
+    card.innerHTML=`${badge}
       <div class="dlcIcon">${d.icon}</div>
       <div class="dlcName">${d.name}</div>
       <div class="dlcDesc">${d.desc}</div>
-      ${owned
-        ?'<div style="color:var(--g);font-size:9px;font-weight:900;margin-bottom:6px">✔ INSTALADO</div>'
-        :`<div class="dlcPriceRow"><span class="dlcCoinIcon">🪙</span><span class="dlcPriceAmt">${d.price}</span><span class="dlcPriceFiat"> fichas</span></div>`
-      }
-      <button class="dlcBuy${owned?' owned':''}" onclick="DLC.buy('${d.id}')" ${owned?'disabled':''} style="${!owned&&!canAfford?'opacity:.5':''}">
-        ${owned?'✔ Ya instalado':canAfford?'🛒 Comprar':`🔒 ${coins!==null?d.price-coins+' fichas más':'Comprar'}`}
+      <div class="dlcPrice" style="color:#f5c518;font-size:11px;margin:4px 0">🪙 ${d.price} fichas</div>
+      <button class="dlcBuy${owned?' owned':''}" onclick="DLC.buy('${d.id}')" ${owned?'disabled':''} style="${!owned&&!canAfford?'opacity:.55':''}">
+        ${owned?'✔ Instalado':canAfford?'🛒 Comprar':'🔒 Sin fichas'}
       </button>`;
     grid.appendChild(card);
   }
 }
-function goMods(){show('sMods');openDlcShop();}
-function openInGameShop(){
-  closePause();
-  show('sMods');openDlcShop();
-  document.getElementById('gUI').style.display='none';
-  document.getElementById('mmap').style.display='none';
-}
-function openShopFromPause(){
-  closePause();
-  setTimeout(()=>{
-    show('sMods');openDlcShop();
-    document.getElementById('gUI').style.display='none';
-    document.getElementById('mmap').style.display='none';
-  },100);
-}
+function goMods(){show('sMods');renderDlcGrid();}
 
 // ═══════════════════════════════════════════════════════
 //  SKIN CUSTOMIZER
@@ -1963,10 +1811,9 @@ function saveSkin(){
 }
 (()=>{try{const s=JSON.parse(localStorage.getItem('wc_skin')||'{}');if(s.avatar)P.avatar=s.avatar;if(s.name)P.name=s.name;if(s.color)MP.myColor=s.color;}catch(e){}})();
 
-// Controls panel
-function openControls(){document.getElementById('ctrlPanel').classList.add('on');}
-function closeControls(){document.getElementById('ctrlPanel').classList.remove('on');}
-document.getElementById('ctrlPanel').addEventListener('click',e=>{if(e.target===document.getElementById('ctrlPanel'))closeControls();});
+// ═══════════════════════════════════════════════════════
+//  CHAT MULTIPLAYER
+// ═══════════════════════════════════════════════════════
 let chatOpen=false,chatUnread=0;
 function toggleChat(){
   chatOpen=!chatOpen;
@@ -2005,16 +1852,10 @@ function openPause(){
   document.getElementById('pauseMenu').classList.add('on');
 }
 function resumeGame(){paused=false;document.getElementById('pauseMenu').classList.remove('on');if(!running){running=true;last=performance.now();requestAnimationFrame(loop);}}
-function closePause(){document.getElementById('pauseMenu').classList.remove('on');paused=false;if(!running){running=true;last=performance.now();requestAnimationFrame(loop);}}
+function closePause(){document.getElementById('pauseMenu').classList.remove('on');paused=false;}
 function copyPauseCode(){const c=document.getElementById('pauseCode').textContent;navigator.clipboard?.writeText(c).catch(()=>{});toast('📋 '+c);}
 function quitToMenu(){saveCurrentWorld();running=false;paused=false;MP.stop();document.getElementById('pauseMenu').classList.remove('on');document.getElementById('gUI').style.display='none';document.getElementById('mmap').style.display='none';goIntro();}
-window.addEventListener('keydown',e=>{
-  if(e.code==='Escape'){
-    const ctrlP=document.getElementById('ctrlPanel');
-    if(ctrlP?.classList.contains('on')){closeControls();return;}
-    if(document.getElementById('gUI').style.display!=='none'){if(paused)resumeGame();else openPause();}
-  }
-},true);
+window.addEventListener('keydown',e=>{if(e.code==='Escape'&&document.getElementById('gUI').style.display!=='none'){if(paused)resumeGame();else openPause();}},true);
 
 // Keyboard I for inventory
 window.addEventListener('keydown',e=>{if(e.code==='KeyI'&&document.getElementById('gUI').style.display!=='none')toggleInv();},true);
@@ -2114,10 +1955,8 @@ function renderCraft(){
   for(const r of REC){
     const can=hasIt(r.needs),div=document.createElement('div');
     div.className='crI '+(can?'y':'n');
-    const cost=Object.entries(r.needs).map(([k,v])=>`${IT[k]?.e||'?'}×${v}`).join(' ');
-    const gives=Object.entries(r.gives).map(([k,v])=>`${IT[k]?.e||'?'}×${v}`).join(' ');
-    const bonus=IT[r.id]?.d||'';
-    div.innerHTML=`<span class="crN">${r.e} ${r.n}</span><span class="crC">Necesitas: ${cost}</span><span class="crGives">→ ${gives}</span>${bonus?`<span class="crBonus" title="${bonus}">${bonus.length>18?bonus.slice(0,18)+'…':bonus}</span>`:''}`;
+    const cost=Object.entries(r.needs).map(([k,v])=>`${IT[k]?.e||''}${v}`).join(' ');
+    div.innerHTML=`<span class="crN">${r.e} ${r.n}</span><span class="crC">${cost}</span>`;
     if(can)div.onclick=()=>doCraft(r);
     list.appendChild(div);
   }
@@ -2126,9 +1965,7 @@ function doCraft(r){
   if(!hasIt(r.needs)){addMsg('¡Faltan materiales!');return;}
   for(const[k,v] of Object.entries(r.needs))removeItem(k,v);
   for(const[k,v] of Object.entries(r.gives))addItem(k,v);
-  const xpBonus=30+P.level*5;
-  gainXP(xpBonus);
-  addMsg(`⚒ ${IT[r.id]?.e||''} ${IT[r.id]?.n||r.id} +${xpBonus}XP`);
+  gainXP(30+P.level*5);addMsg(`⚒ ${IT[r.id].e} ${IT[r.id].n}`);
   spawnFX(P.wx,P.wy,'⚒','#ffd700');Audio.sfx('craft');renderCraft();
   Arcadia.unlock('first_craft');
 }
@@ -2163,9 +2000,7 @@ function gainXP(n){
   while(P.xp>=P.xpN){
     P.xp-=P.xpN;P.level++;P.xpN=Math.floor(P.level*100*1.25);P.mhp+=10;P.hp=P.mhp;
     addMsg(`✨ ¡NIVEL ${P.level}!`);spawnFX(P.wx,P.wy-20,'⬆','#ffd700');
-    Audio.sfx('levelup');
-    Arcadia.unlock('level_up');
-    Arcadia.setRankingValue(P.level);
+    Audio.sfx('levelup');Arcadia.unlock('level_up');Arcadia.setRankingValue(P.level);
   }
 }
 
@@ -2480,7 +2315,7 @@ function initGame(mp){
       document.getElementById('pNm').textContent=P.name;
       document.getElementById('avR').textContent=P.avatar;
       addMsg(`👋 Hola ${P.name}!`);
-      DLC.initFromUser(r.user); // sync coins + owned products
+      DLC.initFromUser(r.user);
     }
   });
   Arcadia.onSaveRequest(saveCurrentWorld);
@@ -2508,16 +2343,17 @@ const lvsEl=document.getElementById('iLvs');
 for(let i=0;i<16;i++){const l=document.createElement('div');l.className='il';l.textContent=ems[i%ems.length];l.style.cssText=`left:${Math.random()*100}%;font-size:${1+Math.random()*1.5}rem;animation-duration:${7+Math.random()*11}s;animation-delay:${-Math.random()*11}s`;lvsEl.appendChild(l);}
 setTimeout(()=>drawPv(),200);
 
-// Expose functions needed by HTML onclick handlers
-const _pub={goIntro,goWorldSelect,goCreateWorld,goMods,goMp,doCreateWorld,doJoin,
-  pickB,copyCode,startMpGame,playWorld,deleteWorld,
+// Expose all onclick-called functions to window (required for type=module scope)
+Object.assign(window,{
+  goIntro,goWorldSelect,goCreateWorld,goMods,goMp,
+  doCreateWorld,doJoin,pickB,copyCode,
+  startMpGame,playWorld,deleteWorld,
   openPause,closePause,resumeGame,quitToMenu,copyPauseCode,
-  openInGameShop,openShopFromPause,
-  openSkin,openSkinFromPause,closeSkin,saveSkin,
-  openControls,closeControls,
-  toggleAudio,toggleChat,sendChat,toggleCraft,toggleInv,
-  saveCurrentWorld,DLC};
-Object.assign(window,_pub);
+  openSkin,closeSkin,saveSkin,
+  toggleAudio,toggleChat,sendChat,
+  toggleCraft,toggleInv,
+  saveCurrentWorld,DLC,Arcadia:window.Arcadia
+});
 </script>
 </body>
 </html>
