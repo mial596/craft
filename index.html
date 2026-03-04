@@ -82,10 +82,11 @@ canvas{position:absolute;top:0;left:0;image-rendering:pixelated;touch-action:non
 .wsWrap{display:flex;flex-direction:column;align-items:center;gap:16px;width:100%;max-height:100%;overflow-y:auto;padding:18px}
 .wsTit{font-family:'Fredoka One',cursive;font-size:clamp(18px,3.5vw,24px);color:var(--g);text-shadow:0 0 20px rgba(78,203,113,.4)}
 .wsGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:12px;width:min(640px,96vw)}
-.wsSlot{background:linear-gradient(145deg,rgba(8,20,10,.9),rgba(4,12,6,.95));border:1.5px solid rgba(78,203,113,.18);
-  border-radius:var(--R);padding:14px;cursor:pointer;transition:all .16s;min-height:92px;
-  display:flex;flex-direction:column;justify-content:space-between;box-shadow:0 2px 12px rgba(0,0,0,.4)}
-.wsSlot:hover,.wsSlot:active{border-color:var(--g);background:linear-gradient(145deg,rgba(20,50,25,.9),rgba(8,20,10,.95));box-shadow:var(--shadow-g)}
+.wsSlot{background:linear-gradient(145deg,rgba(8,20,10,.95),rgba(4,12,6,.98));border:1.5px solid rgba(78,203,113,.15);
+  border-radius:var(--R);padding:14px;cursor:pointer;transition:all .18s cubic-bezier(.34,1.4,.64,1);min-height:96px;
+  display:flex;flex-direction:column;justify-content:space-between;
+  box-shadow:0 3px 14px rgba(0,0,0,.45),inset 0 1px 0 rgba(78,203,113,.05)}
+.wsSlot:hover,.wsSlot:active{border-color:var(--g);background:linear-gradient(145deg,rgba(22,54,28,.95),rgba(8,20,10,.98));box-shadow:var(--shadow-g),inset 0 1px 0 rgba(78,203,113,.1);transform:translateY(-2px)}
 .wsSlot.empty{border-style:dashed;opacity:.45;align-items:center;justify-content:center;font-size:30px}
 .wsName{font-family:'Fredoka One',cursive;font-size:14px;color:var(--g2)}
 .wsMeta{font-size:9px;color:#3a6a4a;margin-top:3px;line-height:1.6}
@@ -221,71 +222,33 @@ canvas{position:absolute;top:0;left:0;image-rendering:pixelated;touch-action:non
 #invBtn:hover{border-color:var(--g);box-shadow:0 0 8px rgba(78,203,113,.25)}
 #invBtn.on{border-color:var(--gold);background:rgba(255,215,0,.07)}
 
-/* ─── DLC & STORE PANEL ─── */
+/* ─── DLC & STORE PANEL (unused legacy panel, kept minimal) ─── */
 #dlcPanel {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: min(550px, 95vw);
-  max-height: 80vh;
-  background: var(--card-bg);
-  border: 2px solid var(--pu); /* Color púrpura para DLCs */
-  border-radius: var(--R);
-  z-index: 100;
-  display: none;
-  flex-direction: column;
-  box-shadow: 0 0 40px rgba(155, 89, 182, 0.3);
-  backdrop-filter: blur(20px);
+  position: absolute;top: 50%;left: 50%;transform: translate(-50%, -50%);
+  width: min(550px, 95vw);max-height: 80vh;background: var(--card-bg);
+  border: 2px solid var(--pu);border-radius: var(--R);z-index: 100;
+  display: none;flex-direction: column;
+  box-shadow: 0 0 40px rgba(155, 89, 182, 0.3);backdrop-filter: blur(20px);
 }
-
 #dlcPanel.on { display: flex; animation: popIn 0.3s cubic-bezier(.34,1.56,.64,1); }
-
-.dlcGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  gap: 12px;
-  padding: 15px;
-  overflow-y: auto;
-}
-
-.dlcCard {
-  background: rgba(155, 89, 182, 0.1);
-  border: 1.5px solid rgba(155, 89, 182, 0.2);
-  border-radius: 12px;
-  padding: 12px;
-  text-align: center;
-  transition: 0.2s;
-  cursor: pointer;
-}
-
-.dlcCard:hover {
-  background: rgba(155, 89, 182, 0.2);
-  border-color: var(--pu);
-  transform: translateY(-3px);
-}
-
-.dlcIcon { font-size: 32px; margin-bottom: 8px; display: block; }
-.dlcName { font-family: 'Fredoka One', cursive; color: #fff; font-size: 13px; }
-.dlcPrice { color: var(--gold); font-weight: 800; font-size: 11px; margin-top: 4px; }
-.dlcOwned { color: var(--g); font-size: 10px; font-weight: 800; text-transform: uppercase; }
 
 /* ─── MEJORAS EN INVENTARIO ─── */
 .invSlot {
-  background: rgba(20, 40, 25, 0.6); /* Fondo más visible */
-  border: 1.5px solid rgba(78, 203, 113, 0.2);
+  background: rgba(12, 26, 16, 0.7);
+  border: 1.5px solid rgba(78, 203, 113, 0.14);
+  transition: border-color .14s, background .14s, box-shadow .14s, transform .1s;
 }
-
 .invSlot:hover {
-  background: rgba(78, 203, 113, 0.15);
-  border-color: var(--g);
-  box-shadow: 0 0 15px rgba(78, 203, 113, 0.2);
+  background: rgba(78, 203, 113, 0.11);
+  border-color: rgba(78, 203, 113, 0.42);
+  box-shadow: 0 0 14px rgba(78, 203, 113, 0.14);
+  transform: scale(1.04);
 }
 
 /* ─── ARREGLO DE TEXTOS EN MÓVIL ─── */
 @media (max-width: 600px) {
   .invGrid { grid-template-columns: repeat(5, 1fr); gap: 4px; }
-  .dlcGrid { grid-template-columns: repeat(2, 1fr); }
+  .modsGrid { grid-template-columns: repeat(2, 1fr); }
   .invTitle { font-size: 14px; }
 }
 
@@ -443,9 +406,9 @@ canvas{position:absolute;top:0;left:0;image-rendering:pixelated;touch-action:non
   background:rgba(2,6,3,.72);backdrop-filter:blur(10px);animation:fadeIn .18s ease}
 #pauseMenu.on{display:flex}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
-.pauseBox{background:linear-gradient(160deg,rgba(8,20,10,.98),rgba(4,12,6,.98));
-  border:1.5px solid rgba(78,203,113,.28);border-radius:20px;padding:24px 28px;
-  width:min(300px,88vw);box-shadow:0 20px 60px rgba(0,0,0,.8),0 0 40px rgba(78,203,113,.07),inset 0 1px 0 rgba(78,203,113,.1);
+.pauseBox{background:linear-gradient(160deg,rgba(9,22,11,.99),rgba(4,12,6,.99));
+  border:1.5px solid rgba(78,203,113,.3);border-radius:22px;padding:26px 30px;
+  width:min(310px,90vw);box-shadow:0 24px 70px rgba(0,0,0,.85),0 0 50px rgba(78,203,113,.06),inset 0 1px 0 rgba(78,203,113,.12);
   display:flex;flex-direction:column;gap:12px;animation:scaleIn .22s cubic-bezier(.34,1.56,.64,1)}
 @keyframes scaleIn{from{opacity:0;transform:scale(.88)}to{opacity:1;transform:scale(1)}}
 .pauseTit{font-family:'Fredoka One',cursive;font-size:24px;color:var(--g);text-align:center;
@@ -507,21 +470,75 @@ canvas{position:absolute;top:0;left:0;image-rendering:pixelated;touch-action:non
 #skinPanel .bS{width:100%;font-size:12px;padding:10px}
 
 /* ═══ MODS / DLC ═══ */
-#sMods{background:radial-gradient(ellipse at 50% 80%,#0a0a1e 0%,#040c06 100%);flex-direction:column}
-.modsWrap{display:flex;flex-direction:column;align-items:center;gap:14px;width:100%;max-height:100%;overflow-y:auto;padding:18px}
-.modsTit{font-family:'Fredoka One',cursive;font-size:clamp(18px,3.5vw,24px);
-  background:linear-gradient(135deg,#c084fc,#818cf8,#a78bfa);-webkit-background-clip:text;
-  -webkit-text-fill-color:transparent;background-clip:text;text-shadow:none}
-.modInfo{font-size:10px;color:#4a4a6a;background:rgba(168,85,247,.06);border:1px solid rgba(168,85,247,.18);
-  border-radius:11px;padding:10px 14px;width:min(580px,96vw);line-height:1.8;text-align:center}
-.modInfo b{color:#a78bfa}
-.modsGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;width:min(580px,96vw)}
-.dlcCard{background:linear-gradient(145deg,rgba(12,10,24,.9),rgba(6,5,16,.95));
-  border:1.5px solid rgba(168,85,247,.2);border-radius:14px;padding:14px;cursor:pointer;
-  transition:all .16s;box-shadow:0 4px 16px rgba(0,0,0,.45)}
-.dlcCard:hover{border-color:rgba(168,85,247,.5);box-shadow:0 6px 24px rgba(168,85,247,.15)}
-.dlcCard.owned{border-color:rgba(78,203,113,.4);background:linear-gradient(145deg,rgba(10,22,14,.9),rgba(5,14,8,.95))}
-.dlcCard.owned:hover{border-color:var(--g)}
+#sMods{
+  background:
+    radial-gradient(ellipse at 20% 0%,rgba(120,40,220,.18) 0%,transparent 55%),
+    radial-gradient(ellipse at 80% 100%,rgba(60,20,120,.22) 0%,transparent 55%),
+    radial-gradient(ellipse at 50% 50%,#07040f 0%,#040c06 100%);
+  flex-direction:column}
+.modsWrap{display:flex;flex-direction:column;align-items:center;gap:18px;width:100%;max-height:100%;overflow-y:auto;padding:22px 18px}
+.modsTit{
+  font-family:'Fredoka One',cursive;font-size:clamp(20px,4vw,28px);
+  background:linear-gradient(135deg,#e0aaff 0%,#c084fc 40%,#818cf8 70%,#a78bfa 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  letter-spacing:.5px;text-shadow:none;filter:drop-shadow(0 0 18px rgba(168,85,247,.35))}
+.modInfo{font-size:10.5px;color:#5a5a8a;background:rgba(168,85,247,.05);
+  border:1px solid rgba(168,85,247,.15);border-radius:13px;padding:10px 16px;
+  width:min(620px,96vw);line-height:1.85;text-align:center;backdrop-filter:blur(8px)}
+.modInfo b{color:#c084fc}
+.modsGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(172px,1fr));gap:14px;width:min(620px,96vw)}
+
+/* DLC CARD — redesigned */
+.dlcCard{
+  position:relative;overflow:hidden;
+  background:linear-gradient(150deg,rgba(18,12,34,.97) 0%,rgba(10,7,22,.98) 100%);
+  border:1.5px solid rgba(168,85,247,.18);border-radius:18px;padding:18px 16px 14px;
+  cursor:pointer;transition:all .2s cubic-bezier(.34,1.4,.64,1);
+  box-shadow:0 6px 22px rgba(0,0,0,.55),inset 0 1px 0 rgba(168,85,247,.07)}
+.dlcCard::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at 50% 0%,rgba(168,85,247,.08) 0%,transparent 65%);
+  pointer-events:none}
+.dlcCard:hover{
+  border-color:rgba(168,85,247,.55);
+  transform:translateY(-4px) scale(1.015);
+  box-shadow:0 14px 38px rgba(168,85,247,.18),0 4px 14px rgba(0,0,0,.6),inset 0 1px 0 rgba(168,85,247,.12)}
+.dlcCard:active{transform:translateY(-1px) scale(1.005)}
+.dlcCard.owned{
+  border-color:rgba(78,203,113,.35);
+  background:linear-gradient(150deg,rgba(8,20,13,.97) 0%,rgba(4,12,7,.98) 100%)}
+.dlcCard.owned::before{
+  background:radial-gradient(ellipse at 50% 0%,rgba(78,203,113,.07) 0%,transparent 65%)}
+.dlcCard.owned:hover{
+  border-color:rgba(78,203,113,.6);
+  box-shadow:0 14px 38px rgba(78,203,113,.12),0 4px 14px rgba(0,0,0,.6)}
+
+.dlcBadge{
+  position:absolute;top:11px;right:11px;
+  font-size:7px;font-weight:900;letter-spacing:.8px;text-transform:uppercase;
+  padding:3px 7px;border-radius:20px;
+  background:rgba(168,85,247,.2);color:#c084fc;border:1px solid rgba(168,85,247,.3)}
+.dlcBadge.new{background:rgba(16,185,129,.2);color:#6ee7b7;border-color:rgba(16,185,129,.35)}
+
+.dlcIcon{font-size:38px;display:block;margin:0 0 11px;
+  filter:drop-shadow(0 2px 10px rgba(0,0,0,.5));text-align:left;line-height:1}
+.dlcName{font-family:'Fredoka One',cursive;color:#e8d5ff;font-size:14.5px;
+  line-height:1.2;margin-bottom:5px}
+.dlcDesc{font-size:9px;color:#5a4a7a;line-height:1.7;margin-bottom:10px;min-height:36px}
+.dlcCard.owned .dlcDesc{color:#3a5a3a}
+
+.dlcBuy{
+  width:100%;font-family:'Fredoka One',cursive;font-size:11px;
+  border:none;border-radius:10px;padding:8px 10px;cursor:pointer;
+  background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff;
+  transition:all .15s;box-shadow:0 3px 12px rgba(124,58,237,.35)}
+.dlcBuy:hover:not([disabled]){background:linear-gradient(135deg,#6d28d9,#9333ea);
+  box-shadow:0 5px 18px rgba(124,58,237,.5);transform:translateY(-1px)}
+.dlcBuy:active:not([disabled]){transform:translateY(1px)}
+.dlcBuy.owned,.dlcBuy[disabled]{
+  background:linear-gradient(135deg,rgba(78,203,113,.18),rgba(39,174,96,.12));
+  color:#6ee89a;box-shadow:none;cursor:default;
+  border:1px solid rgba(78,203,113,.25)}
 
 /* ═══ PAUSE BTN STANDALONE (in-game top-right) ═══ */
 .pauseTopBtn{width:30px;height:30px;border-radius:50%;
@@ -641,16 +658,10 @@ canvas{position:absolute;top:0;left:0;image-rendering:pixelated;touch-action:non
 <!-- ═══ MODS / DLC SCREEN ═══ -->
 <div class="scr" id="sMods" style="display:none">
   <div class="modsWrap">
-    <div class="modsTit">🧩 Mods &amp; DLC — Arcadia Store</div>
-    <div class="modInfo">DLCs con <b>🪙 Fichas Arcadia</b>. En multijugador todos disfrutan los DLCs del anfitrión.</div>
-    <div style="display:flex;align-items:center;gap:8px;margin:0 0 8px;width:min(580px,96vw)">
-      <div style="background:rgba(245,197,24,.12);border:1px solid rgba(245,197,24,.3);border-radius:12px;padding:6px 14px;display:flex;align-items:center;gap:6px">
-        <span>🪙</span><b style="font-size:15px;color:#f5c518" id="dlcCoinCount">—</b><span style="font-size:9px;color:#888">fichas</span>
-      </div>
-      <button onclick="Arcadia.openStore()" style="flex:1;padding:7px 10px;background:linear-gradient(135deg,#7c3aed,#a78bfa);border:none;border-radius:10px;color:#fff;font-size:11px;cursor:pointer;font-weight:700">🏪 Conseguir fichas</button>
-    </div>
+    <div class="modsTit">🧩 Expansiones</div>
+    <div class="modInfo">Activa expansiones para desbloquear nuevo contenido. En multijugador, todos disfrutan las expansiones del anfitrión.</div>
     <div class="modsGrid" id="dlcGrid"></div>
-    <button class="bS" onclick="goIntro()" style="margin-top:4px">← Volver</button>
+    <button class="bS" onclick="goIntro()" style="margin-top:4px;width:min(620px,96vw)">← Volver</button>
   </div>
 </div>
 
@@ -786,7 +797,17 @@ canvas{position:absolute;top:0;left:0;image-rendering:pixelated;touch-action:non
 // ═══════════════════════════════════════════════════════
 //  ARCADIA BRIDGE
 // ═══════════════════════════════════════════════════════
-// Arcadia provides window.Arcadia — we just add the missing methods
+// Arcadia provides window.Arcadia — we proxy it so module-scope code can use
+// bare `Arcadia` references, and it always reflects the latest window.Arcadia.
+const Arcadia = new Proxy({}, {
+  get(_, prop) {
+    const target = window.Arcadia;
+    if (!target) return () => Promise.resolve({success:false,offline:true});
+    const val = target[prop];
+    return typeof val === 'function' ? val.bind(target) : val;
+  },
+  set(_, prop, val) { if(window.Arcadia) window.Arcadia[prop]=val; return true; }
+});
 
 // ═══════════════════════════════════════════════════════
 //  ARCADIA MULTIPLAYER SDK (WebSocket + LocalStorage fallback)
@@ -870,19 +891,20 @@ class ArcadiaMultiplayer {
 }
 
 // Extend Arcadia with buy() and openStore() if not present
-if(window.Arcadia && !window.Arcadia.buy){
-  window.Arcadia.buy = (productId) => window.Arcadia._s('ARCADIA_BUY_PRODUCT',{productId});
-}
-if(window.Arcadia && !window.Arcadia.openStore){
-  window.Arcadia.openStore = () => window.Arcadia._s('ARCADIA_OPEN_STORE');
-}
-if(window.Arcadia && !window.Arcadia.setRankingValue){
-  window.Arcadia.setRankingValue = (value) => window.Arcadia._s('ARCADIA_UPDATE_RANKING',{value});
-}
-if(window.Arcadia && !window.Arcadia.onSaveRequest){
-  window.Arcadia.onSaveRequest = (cb) => {
+// ArcadiaBridge (parent-injected) uses ._send; fallback uses ._s — support both
+if(window.Arcadia){
+  const _call = (type, payload={}) => {
+    if(typeof window.Arcadia._send === 'function') return window.Arcadia._send(type, payload);
+    if(typeof window.Arcadia._s    === 'function') return window.Arcadia._s(type, payload);
+    return Promise.resolve({success:false,offline:true});
+  };
+  if(!window.Arcadia.buy)            window.Arcadia.buy            = (productId) => _call('ARCADIA_BUY_PRODUCT',{productId});
+  if(!window.Arcadia.openStore)      window.Arcadia.openStore      = ()           => _call('ARCADIA_OPEN_STORE');
+  if(!window.Arcadia.setRankingValue)window.Arcadia.setRankingValue= (value)      => _call('ARCADIA_UPDATE_RANKING',{value});
+  if(!window.Arcadia.onSaveRequest)  window.Arcadia.onSaveRequest  = (cb) => {
     window.addEventListener('message', e => { if(e.data?.type==='ARCADIA_REQUEST_SAVE') cb(); });
   };
+  if(!window.Arcadia.getMultiplayer) window.Arcadia.getMultiplayer = async () => new ArcadiaMultiplayer();
 }
 // Fallback if Arcadia not loaded yet
 if(!window.Arcadia){
@@ -899,7 +921,8 @@ if(!window.Arcadia){
     setRankingValue:v=>_fs('ARCADIA_UPDATE_RANKING',{value:v}),
     onSaveRequest:cb=>window.addEventListener('message',e=>{if(e.data?.type==='ARCADIA_REQUEST_SAVE')cb();}),
     getMultiplayer:async()=>new ArcadiaMultiplayer(),
-    _s:_fs
+    _s:_fs,
+    _send:_fs
   };
 }
 
@@ -1460,40 +1483,25 @@ const DLC_CATALOG=[
 
 const DLC={
   owned:new Set(JSON.parse(localStorage.getItem('wc_dlc_owned')||'[]')),
-  coins:null,        // from Arcadia login
   ownedProducts:[],  // from Arcadia login user.ownedProducts
   has(id){return this.owned.has(id)||this.ownedProducts.includes(id);},
   initFromUser(user){
-    this.coins = user.coins??null;
     this.ownedProducts = user.ownedProducts||[];
     // Auto-install DLCs already owned in Arcadia
     this.ownedProducts.forEach(pid=>{
       if(DLC_CATALOG.find(d=>d.id===pid)) this.owned.add(pid);
     });
     localStorage.setItem('wc_dlc_owned',JSON.stringify([...this.owned]));
-    this.updateCoinUI();
     if(this.ownedProducts.length) refreshDlcEffects();
-  },
-  updateCoinUI(){
-    const v=this.coins!=null?this.coins:'—';
-    const el=document.getElementById('dlcCoinCount');if(el)el.textContent=v;
   },
   async buy(id){
     const d=DLC_CATALOG.find(x=>x.id===id);
     if(!d)return;
-    if(this.has(id)){toast('✅ Ya tienes este DLC');return;}
-    // If not enough coins, open Arcadia store
-    if(this.coins!==null && this.coins<d.price){
-      toast('🪙 Fichas insuficientes — abriendo tienda');
-      Arcadia.openStore();
-      return;
-    }
+    if(this.has(id)){toast('✅ Ya tienes esta expansión');return;}
     // Purchase via Arcadia
     const r=await Arcadia.buy(id);
     if(r?.success){
-      this.coins=r.newBalance??this.coins;
       this._install(id,d);
-      this.updateCoinUI();
     } else {
       toast('❌ Compra no completada');
     }
@@ -1757,12 +1765,9 @@ function refreshDlcEffects(){
 
 function renderDlcGrid(){
   const grid=document.getElementById('dlcGrid');if(!grid)return;
-  DLC.updateCoinUI();
   grid.innerHTML='';
-  const coins=DLC.coins;
   for(const d of DLC_CATALOG){
     const owned=DLC.has(d.id);
-    const canAfford=coins===null||coins>=d.price;
     const card=document.createElement('div');
     card.className='dlcCard'+(owned?' owned':'');
     let badge=d.tag?`<div class="dlcBadge${d.tag==='Nuevo'?' new':''}">${d.tag}</div>`:'';
@@ -1770,9 +1775,8 @@ function renderDlcGrid(){
       <div class="dlcIcon">${d.icon}</div>
       <div class="dlcName">${d.name}</div>
       <div class="dlcDesc">${d.desc}</div>
-      <div class="dlcPrice" style="color:#f5c518;font-size:11px;margin:4px 0">🪙 ${d.price} fichas</div>
-      <button class="dlcBuy${owned?' owned':''}" onclick="DLC.buy('${d.id}')" ${owned?'disabled':''} style="${!owned&&!canAfford?'opacity:.55':''}">
-        ${owned?'✔ Instalado':canAfford?'🛒 Comprar':'🔒 Sin fichas'}
+      <button class="dlcBuy${owned?' owned':''}" onclick="DLC.buy('${d.id}')" ${owned?'disabled':''}>
+        ${owned?'✔ Instalado':'🔓 Desbloquear'}
       </button>`;
     grid.appendChild(card);
   }
@@ -2349,10 +2353,10 @@ Object.assign(window,{
   doCreateWorld,doJoin,pickB,copyCode,
   startMpGame,playWorld,deleteWorld,
   openPause,closePause,resumeGame,quitToMenu,copyPauseCode,
-  openSkin,closeSkin,saveSkin,
+  openSkin,closeSkin,saveSkin,openSkinFromPause,
   toggleAudio,toggleChat,sendChat,
   toggleCraft,toggleInv,
-  saveCurrentWorld,DLC,Arcadia:window.Arcadia
+  saveCurrentWorld,renderDlcGrid,DLC,Arcadia:window.Arcadia
 });
 </script>
 </body>
