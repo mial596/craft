@@ -789,7 +789,7 @@ canvas{position:absolute;top:0;left:0;image-rendering:pixelated;touch-action:non
         <span style="font-size:18px">🪙</span>
         <div><div style="font-family:'Fredoka One',cursive;font-size:16px;color:var(--coin)" id="shopCoinDisplay">—</div><div style="font-size:8px;color:#5a4a1a">Fichas Arcadia</div></div>
       </div>
-      <div style="font-size:9px;color:#3a3a5a;line-height:1.7;flex:1">Las fichas se obtienen en <b style="color:#a78bfa">arcadia.gg</b>.<br>También puedes desbloquear DLCs si el anfitrión los tiene.</div>
+      <button onclick="Arcadia.openStore()" style="flex:1;padding:8px 12px;background:linear-gradient(135deg,#a78bfa,#7c3aed);border:none;border-radius:10px;color:#fff;font-family:'Fredoka One',cursive;font-size:12px;cursor:pointer">🏪 Conseguir fichas</button>
     </div>
     <div class="modsGrid" id="dlcGrid"></div>
     <button class="bS" onclick="goIntro()" style="margin-top:4px">← Volver</button>
@@ -973,25 +973,11 @@ canvas{position:absolute;top:0;left:0;image-rendering:pixelated;touch-action:non
 
 <script type="module">
 // ═══════════════════════════════════════════════════════
-//  ARCADIA — host provides window.Arcadia; we only add
-//  getCoins / purchaseDLC if the host hasn't defined them
+//  ARCADIA SDK — window.Arcadia provided by host platform
+//  API: login(), save(str), load(), unlock(id),
+//       buy(productId), openStore(), setRankingValue(n),
+//       onSaveRequest(cb), getMultiplayer()
 // ═══════════════════════════════════════════════════════
-(function extendArcadia(){
-  if(typeof window.Arcadia==='undefined') return; // wait for host
-  if(!window.Arcadia.getCoins){
-    const _s=window.Arcadia._s
-      ? window.Arcadia._s.bind(window.Arcadia)
-      : (type,payload={})=>new Promise(r=>{
-          const id=Date.now().toString(36)+Math.random().toString(36).slice(2);
-          const handler=e=>{const{requestId:rid,payload:p}=e.data||{};if(rid===id){window.removeEventListener('message',handler);r(p);}};
-          window.addEventListener('message',handler);
-          window.parent.postMessage({type,payload,requestId:id},'*');
-          setTimeout(()=>{window.removeEventListener('message',handler);r({success:false,offline:true});},2000);
-        });
-    window.Arcadia.getCoins=()=>_s('ARCADIA_GET_COINS');
-    window.Arcadia.purchaseDLC=(id,price)=>_s('ARCADIA_PURCHASE_DLC',{itemId:id,cost:price});
-  }
-})();
 
 // ═══════════════════════════════════════════════════════
 //  MULTI-WORLD SAVE SYSTEM  (up to 5 slots)
@@ -1080,6 +1066,8 @@ function saveCurrentWorld(){
     hbar:P.hbar, savedAt:Date.now()
   };
   WDB.save(activeSlot,data);
+  // Cloud backup via Arcadia
+  try{ Arcadia.save(JSON.stringify({slot:activeSlot,...data})); }catch(e){}
 }
 
 // ═══════════════════════════════════════════════════════
@@ -1588,20 +1576,20 @@ const DLC_CATALOG=[
 
 const DLC={
   owned:new Set(JSON.parse(localStorage.getItem('wc_dlc_owned')||'[]')),
-  arcCoins: null,
-  _fetchPromise: null,
-  has(id){return this.owned.has(id);},
+  arcCoins: null,      // populated from login()
+  ownedProducts: [],   // from login() user.ownedProducts
+  has(id){return this.owned.has(id)||this.ownedProducts.includes(id);},
 
-  async fetchCoins(){
-    // Debounce — only one request at a time
-    if(this._fetchPromise) return this._fetchPromise;
-    this._fetchPromise = Arcadia.getCoins().then(r=>{
-      this.arcCoins = (r?.success && r.coins!=null) ? r.coins : null;
-      this.updateCoinUI();
-      this._fetchPromise = null;
-      return this.arcCoins;
-    }).catch(()=>{ this._fetchPromise=null; return null; });
-    return this._fetchPromise;
+  initFromUser(user){
+    // Called after Arcadia.login() — sync owned products and coin balance
+    this.arcCoins = user.coins ?? null;
+    this.ownedProducts = user.ownedProducts || [];
+    // Auto-install any DLCs already purchased in Arcadia
+    this.ownedProducts.forEach(pid=>{
+      if(DLC_CATALOG.find(d=>d.id===pid)) this.owned.add(pid);
+    });
+    localStorage.setItem('wc_dlc_owned',JSON.stringify([...this.owned]));
+    this.updateCoinUI();
   },
 
   updateCoinUI(){
@@ -1613,30 +1601,25 @@ const DLC={
   async buy(id){
     const d=DLC_CATALOG.find(x=>x.id===id);
     if(!d) return;
-    if(this.owned.has(id)){toast('✅ Ya tienes este DLC');return;}
+    if(this.has(id)){toast('✅ Ya tienes este DLC');return;}
 
-    const coins = this.arcCoins;
-
-    // Offline / not in Arcadia → install free
-    if(coins===null){
-      this._install(id,d);
-      return;
-    }
-
-    if(coins < d.price){
+    const coins=this.arcCoins;
+    if(coins!==null && coins<d.price){
+      // Not enough coins — open Arcadia store so they can buy more
       toast(`🪙 Necesitas ${d.price-coins} fichas más`);
       Audio.sfx('break');
+      await Arcadia.openStore();
       return;
     }
 
-    const result = await Arcadia.purchaseDLC(id, d.price);
+    // Purchase via Arcadia
+    const result = await Arcadia.buy(id);
     if(result?.success){
-      this.arcCoins = result.coins ?? (coins - d.price);
+      this.arcCoins = result.newBalance ?? (coins!==null ? coins-d.price : null);
       this.updateCoinUI();
       this._install(id,d);
     } else {
-      // Arcadia offline fallback
-      this._install(id,d);
+      toast('❌ Compra no completada');
     }
   },
 
@@ -1644,7 +1627,7 @@ const DLC={
     this.owned.add(id);
     localStorage.setItem('wc_dlc_owned',JSON.stringify([...this.owned]));
     refreshDlcEffects();
-    renderDlcGrid(); // re-render without re-fetching coins
+    renderDlcGrid();
     toast(`🧩 ¡${d.icon} ${d.name} instalado!`);
     Audio.sfx('levelup');
   },
@@ -1898,11 +1881,10 @@ function refreshDlcEffects(){
   }
 }
 
-// Called on shop open — fetches coins then renders
-async function openDlcShop(){
+// Opens shop - shows Arcadia native store button + our DLC grid
+function openDlcShop(){
   const grid=document.getElementById('dlcGrid');if(!grid)return;
-  grid.innerHTML='<div style="text-align:center;padding:20px;color:#4a4a6a;font-size:10px">🪙 Consultando fichas Arcadia...</div>';
-  await DLC.fetchCoins();
+  DLC.updateCoinUI();
   renderDlcGrid();
 }
 // Pure render — uses already-cached DLC.arcCoins, no fetch
@@ -2181,7 +2163,9 @@ function gainXP(n){
   while(P.xp>=P.xpN){
     P.xp-=P.xpN;P.level++;P.xpN=Math.floor(P.level*100*1.25);P.mhp+=10;P.hp=P.mhp;
     addMsg(`✨ ¡NIVEL ${P.level}!`);spawnFX(P.wx,P.wy-20,'⬆','#ffd700');
-    Audio.sfx('levelup');Arcadia.unlock('level_up');
+    Audio.sfx('levelup');
+    Arcadia.unlock('level_up');
+    Arcadia.setRankingValue(P.level);
   }
 }
 
@@ -2488,8 +2472,18 @@ function initGame(mp){
     const names=DLC_CATALOG.filter(d=>DLC.has(d.id)).map(d=>d.icon+' '+d.name).join(', ');
     setTimeout(()=>addMsg(`🧩 DLCs activos: ${names}`),4000);
   }
-  Arcadia.login().then(r=>{if(r?.success&&r.user){P.name=r.user.username||'Viajero';P.avatar=r.user.avatar||'🧑';myUserId='arc_'+r.user.id;document.getElementById('pNm').textContent=P.name;document.getElementById('avR').textContent=P.avatar;addMsg(`👋 Hola ${P.name}!`);}});
-  Arcadia.onSaveReq(saveCurrentWorld);
+  Arcadia.login().then(r=>{
+    if(r?.success&&r.user){
+      P.name=r.user.username||'Viajero';
+      P.avatar=r.user.avatar||'🧑';
+      myUserId='arc_'+r.user.id;
+      document.getElementById('pNm').textContent=P.name;
+      document.getElementById('avR').textContent=P.avatar;
+      addMsg(`👋 Hola ${P.name}!`);
+      DLC.initFromUser(r.user); // sync coins + owned products
+    }
+  });
+  Arcadia.onSaveRequest(saveCurrentWorld);
   Audio.init();Audio.resume();Audio.startMusic();
   if(!running){running=true;last=performance.now();requestAnimationFrame(loop);}
 }
