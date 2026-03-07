@@ -1034,21 +1034,43 @@ canvas{position:absolute;top:0;left:0;image-rendering:pixelated;touch-action:non
 // ═══════════════════════════════════════════════════════
 //  ARCADIA BRIDGE
 // ═══════════════════════════════════════════════════════
-// Cache whatever Arcadia the parent injected BEFORE we touch window.Arcadia
-let _arcadiaReal = window.Arcadia || null;
-// Listen for late injection by parent
-window.addEventListener('message', e => {
-  if(e.data?.type==='ARCADIA_READY' && window.Arcadia && window.Arcadia !== Arcadia)
-    _arcadiaReal = window.Arcadia;
-});
-const Arcadia = new Proxy({}, {
-  get(_, prop) {
-    const target = _arcadiaReal;
-    if (!target) return () => Promise.resolve({success:false,offline:true});
-    const val = target[prop];
-    return typeof val === 'function' ? val.bind(target) : val;
-  },
-  set(_, prop, val) { if(_arcadiaReal) _arcadiaReal[prop]=val; return true; }
+// window.Arcadia is injected by the parent as: new ArcadiaBridge()
+// It has: login, save, load, unlock, buy, openStore, setRankingValue,
+//         onSaveRequest, getMultiplayer — all returning Promises.
+// If not present (standalone / GitHub Pages), we create a local fallback.
+
+(function setupArcadia(){
+  if(window.Arcadia) return; // parent already injected it — use as-is
+  // Fallback: postMessage bridge (works when hosted inside an Arcadia iframe)
+  const _fc = {};
+  window.addEventListener('message', e => {
+    const { requestId, payload } = e.data || {};
+    if(requestId && _fc[requestId]){ _fc[requestId](payload); delete _fc[requestId]; }
+  });
+  const _send = (type, payload={}) => new Promise(resolve => {
+    const requestId = Date.now().toString(36) + Math.random().toString(36).slice(2);
+    _fc[requestId] = resolve;
+    window.parent.postMessage({ type, payload, requestId }, '*');
+    setTimeout(() => { if(_fc[requestId]){ _fc[requestId]({success:false,offline:true}); delete _fc[requestId]; } }, 3000);
+  });
+  window.Arcadia = {
+    login:              ()    => _send('ARCADIA_LOGIN'),
+    save:               data  => _send('ARCADIA_SAVE_DATA',         { data }),
+    load:               ()    => _send('ARCADIA_LOAD_DATA'),
+    unlock:             id    => _send('ARCADIA_UNLOCK_ACHIEVEMENT', { achievementId: id }),
+    buy:                pid   => _send('ARCADIA_BUY_PRODUCT',        { productId: pid }),
+    openStore:          ()    => _send('ARCADIA_OPEN_STORE'),
+    setRankingValue:    value => _send('ARCADIA_UPDATE_RANKING',     { value }),
+    onSaveRequest:      cb    => window.addEventListener('message', e => { if(e.data?.type==='ARCADIA_REQUEST_SAVE') cb(); }),
+    getMultiplayer:     async () => new ArcadiaMultiplayer(),
+    _send
+  };
+})();
+
+// Local alias — always points to window.Arcadia (set above or by parent)
+// Use a getter function to avoid capturing a stale reference
+const Arcadia = new Proxy({},{
+  get(_,p){ const a=window.Arcadia; return a&&a!==Arcadia ? (typeof a[p]==='function'?a[p].bind(a):a[p]) : ()=>Promise.resolve({success:false,offline:true}); }
 });
 
 // ═══════════════════════════════════════════════════════
@@ -1132,40 +1154,6 @@ class ArcadiaMultiplayer {
   }
 }
 
-// Extend _arcadiaReal with missing methods if parent injected Arcadia
-if(_arcadiaReal){
-  const _call = (type, payload={}) => {
-    if(typeof _arcadiaReal._send === 'function') return _arcadiaReal._send(type, payload);
-    if(typeof _arcadiaReal._s    === 'function') return _arcadiaReal._s(type, payload);
-    return Promise.resolve({success:false,offline:true});
-  };
-  if(!_arcadiaReal.buy)            _arcadiaReal.buy            = (productId) => _call('ARCADIA_BUY_PRODUCT',{productId});
-  if(!_arcadiaReal.openStore)      _arcadiaReal.openStore      = ()           => _call('ARCADIA_OPEN_STORE');
-  if(!_arcadiaReal.setRankingValue)_arcadiaReal.setRankingValue= (value)      => _call('ARCADIA_UPDATE_RANKING',{value});
-  if(!_arcadiaReal.onSaveRequest)  _arcadiaReal.onSaveRequest  = (cb) => {
-    window.addEventListener('message', e => { if(e.data?.type==='ARCADIA_REQUEST_SAVE') cb(); });
-  };
-  if(!_arcadiaReal.getMultiplayer) _arcadiaReal.getMultiplayer = async () => new ArcadiaMultiplayer();
-}
-// Fallback if Arcadia not loaded yet — set _arcadiaReal directly, never window.Arcadia
-if(!_arcadiaReal){
-  const _fc={};
-  window.addEventListener('message',e=>{const{requestId:id,payload}=e.data||{};if(id&&_fc[id]){_fc[id](payload);delete _fc[id];}});
-  const _fs=(type,payload={})=>new Promise(r=>{const id=Date.now().toString(36)+Math.random().toString(36).slice(2);_fc[id]=r;window.parent.postMessage({type,payload,requestId:id},'*');setTimeout(()=>{if(_fc[id]){_fc[id]({success:false,offline:true});delete _fc[id];}},2000);});
-  _arcadiaReal={
-    login:()=>_fs('ARCADIA_LOGIN'),
-    save:d=>_fs('ARCADIA_SAVE_DATA',{data:d}),
-    load:()=>_fs('ARCADIA_LOAD_DATA'),
-    unlock:id=>_fs('ARCADIA_UNLOCK_ACHIEVEMENT',{achievementId:id}),
-    buy:pid=>_fs('ARCADIA_BUY_PRODUCT',{productId:pid}),
-    openStore:()=>_fs('ARCADIA_OPEN_STORE'),
-    setRankingValue:v=>_fs('ARCADIA_UPDATE_RANKING',{value:v}),
-    onSaveRequest:cb=>window.addEventListener('message',e=>{if(e.data?.type==='ARCADIA_REQUEST_SAVE')cb();}),
-    getMultiplayer:async()=>new ArcadiaMultiplayer(),
-    _s:_fs,
-    _send:_fs
-  };
-}
 
 // ═══════════════════════════════════════════════════════
 //  MULTI-WORLD SAVE SYSTEM  (up to 5 slots)
