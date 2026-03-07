@@ -1034,16 +1034,21 @@ canvas{position:absolute;top:0;left:0;image-rendering:pixelated;touch-action:non
 // ═══════════════════════════════════════════════════════
 //  ARCADIA BRIDGE
 // ═══════════════════════════════════════════════════════
-// Arcadia provides window.Arcadia — we proxy it so module-scope code can use
-// bare `Arcadia` references, and it always reflects the latest window.Arcadia.
+// Cache whatever Arcadia the parent injected BEFORE we touch window.Arcadia
+let _arcadiaReal = window.Arcadia || null;
+// Listen for late injection by parent
+window.addEventListener('message', e => {
+  if(e.data?.type==='ARCADIA_READY' && window.Arcadia && window.Arcadia !== Arcadia)
+    _arcadiaReal = window.Arcadia;
+});
 const Arcadia = new Proxy({}, {
   get(_, prop) {
-    const target = window.Arcadia;
+    const target = _arcadiaReal;
     if (!target) return () => Promise.resolve({success:false,offline:true});
     const val = target[prop];
     return typeof val === 'function' ? val.bind(target) : val;
   },
-  set(_, prop, val) { if(window.Arcadia) window.Arcadia[prop]=val; return true; }
+  set(_, prop, val) { if(_arcadiaReal) _arcadiaReal[prop]=val; return true; }
 });
 
 // ═══════════════════════════════════════════════════════
@@ -1127,28 +1132,27 @@ class ArcadiaMultiplayer {
   }
 }
 
-// Extend Arcadia with buy() and openStore() if not present
-// ArcadiaBridge (parent-injected) uses ._send; fallback uses ._s — support both
-if(window.Arcadia){
+// Extend _arcadiaReal with missing methods if parent injected Arcadia
+if(_arcadiaReal){
   const _call = (type, payload={}) => {
-    if(typeof window.Arcadia._send === 'function') return window.Arcadia._send(type, payload);
-    if(typeof window.Arcadia._s    === 'function') return window.Arcadia._s(type, payload);
+    if(typeof _arcadiaReal._send === 'function') return _arcadiaReal._send(type, payload);
+    if(typeof _arcadiaReal._s    === 'function') return _arcadiaReal._s(type, payload);
     return Promise.resolve({success:false,offline:true});
   };
-  if(!window.Arcadia.buy)            window.Arcadia.buy            = (productId) => _call('ARCADIA_BUY_PRODUCT',{productId});
-  if(!window.Arcadia.openStore)      window.Arcadia.openStore      = ()           => _call('ARCADIA_OPEN_STORE');
-  if(!window.Arcadia.setRankingValue)window.Arcadia.setRankingValue= (value)      => _call('ARCADIA_UPDATE_RANKING',{value});
-  if(!window.Arcadia.onSaveRequest)  window.Arcadia.onSaveRequest  = (cb) => {
+  if(!_arcadiaReal.buy)            _arcadiaReal.buy            = (productId) => _call('ARCADIA_BUY_PRODUCT',{productId});
+  if(!_arcadiaReal.openStore)      _arcadiaReal.openStore      = ()           => _call('ARCADIA_OPEN_STORE');
+  if(!_arcadiaReal.setRankingValue)_arcadiaReal.setRankingValue= (value)      => _call('ARCADIA_UPDATE_RANKING',{value});
+  if(!_arcadiaReal.onSaveRequest)  _arcadiaReal.onSaveRequest  = (cb) => {
     window.addEventListener('message', e => { if(e.data?.type==='ARCADIA_REQUEST_SAVE') cb(); });
   };
-  if(!window.Arcadia.getMultiplayer) window.Arcadia.getMultiplayer = async () => new ArcadiaMultiplayer();
+  if(!_arcadiaReal.getMultiplayer) _arcadiaReal.getMultiplayer = async () => new ArcadiaMultiplayer();
 }
-// Fallback if Arcadia not loaded yet
-if(!window.Arcadia){
+// Fallback if Arcadia not loaded yet — set _arcadiaReal directly, never window.Arcadia
+if(!_arcadiaReal){
   const _fc={};
   window.addEventListener('message',e=>{const{requestId:id,payload}=e.data||{};if(id&&_fc[id]){_fc[id](payload);delete _fc[id];}});
   const _fs=(type,payload={})=>new Promise(r=>{const id=Date.now().toString(36)+Math.random().toString(36).slice(2);_fc[id]=r;window.parent.postMessage({type,payload,requestId:id},'*');setTimeout(()=>{if(_fc[id]){_fc[id]({success:false,offline:true});delete _fc[id];}},2000);});
-  window.Arcadia={
+  _arcadiaReal={
     login:()=>_fs('ARCADIA_LOGIN'),
     save:d=>_fs('ARCADIA_SAVE_DATA',{data:d}),
     load:()=>_fs('ARCADIA_LOAD_DATA'),
@@ -1692,9 +1696,13 @@ function toggleAudio(){
 //  INPUT — KEYBOARD
 // ═══════════════════════════════════════════════════════
 const keys={};
-// Focus container on any click/touch so keyboard works in iframe
-document.getElementById('G').addEventListener('click', ()=>document.getElementById('G').focus(), {passive:true});
-document.addEventListener('touchstart', ()=>document.getElementById('G').focus(), {passive:true});
+// Focus container on click/touch so keyboard works in iframe — but NOT when touching inputs
+document.getElementById('G').addEventListener('click', e=>{
+  if(e.target.tagName!=='INPUT'&&e.target.tagName!=='TEXTAREA'&&e.target.tagName!=='BUTTON') document.getElementById('G').focus();
+}, {passive:true});
+document.addEventListener('touchstart', e=>{
+  if(e.target.tagName!=='INPUT'&&e.target.tagName!=='TEXTAREA'&&e.target.tagName!=='BUTTON') document.getElementById('G').focus();
+}, {passive:true});
 
 document.addEventListener('keydown',e=>{
   const tag=document.activeElement?.tagName;
