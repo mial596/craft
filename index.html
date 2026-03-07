@@ -1035,25 +1035,27 @@ canvas{position:absolute;top:0;left:0;image-rendering:pixelated;touch-action:non
   const splash = document.getElementById('sSplash');
   const intro  = document.getElementById('sI');
   let dismissed = false;
-  function dismissSplash(){
+  function showIntro(){
+    splash.style.display='none';
+    const anyVisible = ['sWS','sW','sMods'].some(id=>{
+      const el=document.getElementById(id);
+      return el && el.style.display !== 'none' && el.style.display !== '';
+    });
+    if(!anyVisible && document.getElementById('gUI')?.style.display !== 'block')
+      intro.style.display='flex';
+  }
+  function dismissSplash(fromGesture){
     if(dismissed) return;
     dismissed = true;
-    try{ Snd.init(); Snd.resume(); }catch(e){}
+    if(fromGesture) setTimeout(()=>Snd.resume(), 0);
     splash.classList.add('fade-out');
-    setTimeout(()=>{
-      splash.style.display='none';
-      // Only show intro if no game is running and no other screen is visible
-      const anyVisible = ['sWS','sW','sMods'].some(id=>{
-        const el=document.getElementById(id);
-        return el && el.style.display !== 'none' && el.style.display !== '';
-      });
-      const gameVisible = document.getElementById('gUI')?.style.display === 'block';
-      if(!anyVisible && !gameVisible) intro.style.display='flex';
-    }, 600);
+    setTimeout(showIntro, 600);
   }
-  const timer = setTimeout(dismissSplash, 2800);
-  splash.addEventListener('click',      ()=>{ clearTimeout(timer); dismissSplash(); });
-  splash.addEventListener('touchstart', ()=>{ clearTimeout(timer); dismissSplash(); }, {passive:true});
+  const timer = setTimeout(()=>dismissSplash(false), 2800);
+  splash.addEventListener('click',      ()=>{ clearTimeout(timer); dismissSplash(true); });
+  splash.addEventListener('touchstart', ()=>{ clearTimeout(timer); dismissSplash(true); }, {passive:true});
+  // Init Snd after module is fully parsed
+  setTimeout(()=>Snd.init(), 0);
 })();
 
 // ═══════════════════════════════════════════════════════
@@ -1574,40 +1576,57 @@ let myUserId='p_'+Math.random().toString(36).slice(2,10);
 // ═══════════════════════════════════════════════════════
 const Snd={
   ctx:null, enabled:true, mGain:null, sGain:null, bgOn:false,
+  _gestured:false,   // true after first real user interaction
+  _pendingMusic:false, // startMusic was called before gesture
   // ── MP3 tracks ──
   _DAY_URL:  'https://image2url.com/r2/default/audio/1772838181554-5c326805-768f-4bbd-9181-ff9dcebc0a45.mp3',
   _NIGHT_URL:'https://image2url.com/r2/default/audio/1772837365964-efd20a73-5b46-47c7-b742-4808a98e0848.mp3',
-  _day:null, _night:null,        // HTMLAudioElement
-  _isDay:null,                   // current track playing (true=day, false=night, null=none)
+  _day:null, _night:null,
+  _isDay:null,
   _xfading:false,
 
+  // Called once at startup — only creates HTMLAudioElements, NO AudioContext yet
   init(){
+    try{
+      this._day   = this._makeEl(this._DAY_URL);
+      this._night = this._makeEl(this._NIGHT_URL);
+    }catch(e){}
+  },
+
+  // Lazily create AudioContext on first real gesture
+  _ensureCtx(){
+    if(this.ctx) return true;
     try{
       this.ctx=new(window.AudioContext||window.webkitAudioContext)();
       this.sGain=this.ctx.createGain();
       this.sGain.gain.value=.52;
       this.sGain.connect(this.ctx.destination);
-    }catch(e){this.enabled=false;}
-    // Pre-create audio elements
-    this._day   = this._makeEl(this._DAY_URL);
-    this._night = this._makeEl(this._NIGHT_URL);
+      return true;
+    }catch(e){ this.enabled=false; return false; }
   },
 
   _makeEl(url){
     const a=new window.Audio(url);
-    a.loop=true; a.volume=0; a.preload='auto';
+    a.loop=true; a.volume=0; a.preload='none'; // don't preload until gesture
     return a;
   },
 
+  // Call this inside every user gesture handler
   resume(){
-    if(this.ctx?.state==='suspended') this.ctx.resume();
+    this._gestured=true;
+    if(!this._ensureCtx()) return;
+    if(this.ctx.state==='suspended') this.ctx.resume();
+    // If music was requested before gesture, start it now
+    if(this._pendingMusic && this.enabled){
+      this._pendingMusic=false;
+      this._doStartMusic();
+    }
   },
 
-  // Call every game tick with current P.time
   updateTrack(ptime){
     if(!this.enabled||!this.bgOn) return;
     const wantDay = ptime>=360 && ptime<1200;
-    if(this._isDay===wantDay) return;  // no change needed
+    if(this._isDay===wantDay) return;
     this._crossfade(wantDay);
   },
 
@@ -1617,7 +1636,6 @@ const Snd={
     const fadeIn  = toDay ? this._day   : this._night;
     const fadeOut = toDay ? this._night : this._day;
     const FADE=3000; const STEPS=30; const dt=FADE/STEPS;
-    // Start the incoming track at 0 vol
     fadeIn.volume=0;
     fadeIn.play().catch(()=>{});
     let step=0;
@@ -1633,20 +1651,19 @@ const Snd={
         this._xfading=false;
       }
     },dt);
-    this._isDay=toDay; // optimistic to avoid re-trigger
+    this._isDay=toDay;
   },
 
   stopMusic(){
     this.bgOn=false;
     this._isDay=null;
     this._xfading=false;
+    this._pendingMusic=false;
     if(this._day)  { this._day.pause();   this._day.currentTime=0;   this._day.volume=0; }
     if(this._night){ this._night.pause(); this._night.currentTime=0; this._night.volume=0; }
   },
 
-  startMusic(){
-    if(!this.enabled) return;
-    // Always stop cleanly before starting to avoid duplicates
+  _doStartMusic(){
     this.stopMusic();
     this.bgOn=true;
     const startDay = P.time>=360 && P.time<1200;
@@ -1656,8 +1673,20 @@ const Snd={
     this._isDay=startDay;
   },
 
+  startMusic(){
+    if(!this.enabled) return;
+    if(!this._gestured){
+      // Queue it — will fire as soon as user taps/clicks anything
+      this._pendingMusic=true;
+      return;
+    }
+    this._doStartMusic();
+  },
+
   sfx(type){
-    if(!this.ctx||!this.enabled)return; this.resume();
+    if(!this._gestured||!this.enabled) return;
+    if(!this._ensureCtx()) return;
+    if(this.ctx.state==='suspended') this.ctx.resume();
     const ctx=this.ctx,g=this.sGain,t=ctx.currentTime;
     const osc=(f,tp='triangle',dur=.18,vol=.2,slide=0)=>{const o=ctx.createOscillator(),og=ctx.createGain();o.type=tp;o.frequency.setValueAtTime(f,t);if(slide)o.frequency.linearRampToValueAtTime(slide,t+dur);og.gain.setValueAtTime(0,t);og.gain.linearRampToValueAtTime(vol,t+.02);og.gain.linearRampToValueAtTime(0,t+dur);o.connect(og);og.connect(g);o.start(t);o.stop(t+dur+.05);};
     const noise=(dur=.15,vol=.3,decay=2)=>{const buf=ctx.createBuffer(1,ctx.sampleRate*dur,ctx.sampleRate),d=buf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,decay);const s=ctx.createBufferSource(),bg=ctx.createGain();bg.gain.value=vol;s.buffer=buf;s.connect(bg);bg.connect(g);s.start(t);};
@@ -1674,11 +1703,8 @@ const Snd={
 
   toggle(){
     this.enabled=!this.enabled;
-    if(this.enabled){
-      if(running) this.startMusic(); // only restart if in-game
-    } else {
-      this.stopMusic();
-    }
+    if(this.enabled){ if(running) this.startMusic(); }
+    else { this.stopMusic(); }
     return this.enabled;
   }
 
