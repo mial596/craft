@@ -1028,35 +1028,6 @@ canvas{position:absolute;top:0;left:0;image-rendering:pixelated;touch-action:non
 
 <script type="module">
 'use strict';
-// ═══════════════════════════════════════════════════════
-//  SPLASH SCREEN
-// ═══════════════════════════════════════════════════════
-(function initSplash(){
-  const splash = document.getElementById('sSplash');
-  const intro  = document.getElementById('sI');
-  let dismissed = false;
-  function showIntro(){
-    splash.style.display='none';
-    const anyVisible = ['sWS','sW','sMods'].some(id=>{
-      const el=document.getElementById(id);
-      return el && el.style.display !== 'none' && el.style.display !== '';
-    });
-    if(!anyVisible && document.getElementById('gUI')?.style.display !== 'block')
-      intro.style.display='flex';
-  }
-  function dismissSplash(fromGesture){
-    if(dismissed) return;
-    dismissed = true;
-    if(fromGesture) setTimeout(()=>Snd.resume(), 0);
-    splash.classList.add('fade-out');
-    setTimeout(showIntro, 600);
-  }
-  const timer = setTimeout(()=>dismissSplash(false), 2800);
-  splash.addEventListener('click',      ()=>{ clearTimeout(timer); dismissSplash(true); });
-  splash.addEventListener('touchstart', ()=>{ clearTimeout(timer); dismissSplash(true); }, {passive:true});
-  // Init Snd after module is fully parsed
-  setTimeout(()=>Snd.init(), 0);
-})();
 
 // ═══════════════════════════════════════════════════════
 //  ARCADIA BRIDGE
@@ -1720,6 +1691,8 @@ function toggleAudio(){
 // ═══════════════════════════════════════════════════════
 const keys={};
 window.addEventListener('keydown',e=>{
+  const tag=document.activeElement?.tagName;
+  if(tag==='INPUT'||tag==='TEXTAREA') return; // let text fields type freely
   keys[e.code]=1;
   if(e.code==='KeyE')tryGather();
   if(e.code==='KeyC')toggleCraft();
@@ -2899,6 +2872,30 @@ Object.assign(window,{
   toggleCraft,toggleInv,
   saveCurrentWorld,renderDlcGrid,toggleDlc,DLC,Arcadia:window.Arcadia
 });
+
+// ═══════════════════════════════════════════════════════
+//  SPLASH — runs last so Snd is defined, gesture is sync
+// ═══════════════════════════════════════════════════════
+(function(){
+  Snd.init(); // safe: only creates HTMLAudioElements, no AudioContext
+  const splash = document.getElementById('sSplash');
+  const intro  = document.getElementById('sI');
+  let dismissed = false;
+  function showIntro(){
+    splash.style.display='none';
+    const anyVisible=['sWS','sW','sMods'].some(id=>{const el=document.getElementById(id);return el&&el.style.display!=='none'&&el.style.display!=='';});
+    if(!anyVisible&&document.getElementById('gUI')?.style.display!=='block') intro.style.display='flex';
+  }
+  function dismiss(fromGesture){
+    if(dismissed)return; dismissed=true;
+    if(fromGesture) Snd.resume(); // sync inside handler — required by mobile browsers
+    splash.classList.add('fade-out');
+    setTimeout(showIntro,600);
+  }
+  const timer=setTimeout(()=>dismiss(false),2800);
+  splash.addEventListener('click',     ()=>{clearTimeout(timer);dismiss(true);});
+  splash.addEventListener('touchstart',()=>{clearTimeout(timer);dismiss(true);},{passive:true});
+})();
 </script>
 </body>
 </html>
