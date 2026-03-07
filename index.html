@@ -1062,7 +1062,6 @@ canvas{position:absolute;top:0;left:0;image-rendering:pixelated;touch-action:non
     openStore:          ()    => _send('ARCADIA_OPEN_STORE'),
     setRankingValue:    value => _send('ARCADIA_UPDATE_RANKING',     { value }),
     onSaveRequest:      cb    => window.addEventListener('message', e => { if(e.data?.type==='ARCADIA_REQUEST_SAVE') cb(); }),
-    getMultiplayer:     async () => new ArcadiaMultiplayer(),
     _send
   };
 })();
@@ -1072,87 +1071,6 @@ canvas{position:absolute;top:0;left:0;image-rendering:pixelated;touch-action:non
 const Arcadia = new Proxy({},{
   get(_,p){ const a=window.Arcadia; return a&&a!==Arcadia ? (typeof a[p]==='function'?a[p].bind(a):a[p]) : ()=>Promise.resolve({success:false,offline:true}); }
 });
-
-// ═══════════════════════════════════════════════════════
-//  ARCADIA MULTIPLAYER SDK (WebSocket + LocalStorage fallback)
-// ═══════════════════════════════════════════════════════
-class ArcadiaMultiplayer {
-  constructor() {
-    this.socket   = null;    // Socket.io in production: wss://mp.arcadia.gg
-    this.roomId   = null;
-    this.callbacks = {};     // matches spec: callbacks object
-
-    // Internal
-    this._myId    = null;
-    this._pollId  = null;
-    this._lastSeen = {};
-  }
-
-  async connect(roomId, metadata = {}) {
-    this.roomId = roomId;
-    this._myId  = metadata.userId || ('u_' + Math.random().toString(36).slice(2, 9));
-    console.log('[ArcadiaMultiplayer] Conectando a sala:', roomId, 'como', this._myId);
-    // Production: this.socket = io('wss://mp.arcadia.gg', { query: { roomId, ...metadata } });
-    this._startBus();
-    this._emit('user-joined', { userId: this._myId, ...metadata });
-  }
-
-  send(event, data) {
-    if (!this.roomId || !this._myId) return;
-    try {
-      const key = `arc_${this.roomId}_${this._myId}_${event}`;
-      const pkg = JSON.stringify({ event, data, from: this._myId, ts: Date.now() });
-      localStorage.setItem(key, pkg);
-      const bk  = `arc_${this.roomId}_idx`;
-      const arr = JSON.parse(localStorage.getItem(bk) || '[]');
-      const ei  = arr.findIndex(e => e.k === key);
-      if (ei >= 0) arr[ei].ts = Date.now();
-      else { arr.push({ k: key, ts: Date.now() }); if (arr.length > 80) arr.shift(); }
-      localStorage.setItem(bk, JSON.stringify(arr));
-    } catch(e) {}
-  }
-
-  on(event, callback) {
-    if (!this.callbacks[event]) this.callbacks[event] = [];
-    this.callbacks[event].push(callback);
-  }
-
-  _emit(event, payload) {
-    (this.callbacks[event] || []).forEach(cb => { try { cb(payload); } catch(e) {} });
-  }
-
-  _startBus() {
-    this._pollId = setInterval(() => {
-      try {
-        const bk  = `arc_${this.roomId}_idx`;
-        const arr = JSON.parse(localStorage.getItem(bk) || '[]');
-        const now = Date.now();
-        arr.filter(e => e.ts > now - 6000 && !e.k.includes(`_${this._myId}_`))
-           .forEach(entry => {
-             if (this._lastSeen[entry.k] === entry.ts) return;
-             this._lastSeen[entry.k] = entry.ts;
-             try {
-               const pkg = JSON.parse(localStorage.getItem(entry.k) || 'null');
-               if (pkg && pkg.from !== this._myId)
-                 this._emit(pkg.event, { from: pkg.from, data: pkg.data });
-             } catch(e) {}
-           });
-        for (const k in this._lastSeen)
-          if (this._lastSeen[k] < now - 12000) delete this._lastSeen[k];
-      } catch(e) {}
-    }, 100); // 100ms → ~10 state updates/sec
-  }
-
-  disconnect() {
-    clearInterval(this._pollId);
-    try {
-      const bk  = `arc_${this.roomId}_idx`;
-      const arr = JSON.parse(localStorage.getItem(bk) || '[]');
-      localStorage.setItem(bk, JSON.stringify(arr.filter(e => !e.k.includes(`_${this._myId}_`))));
-    } catch(e) {}
-    this._emit('user-left', { userId: this._myId });
-  }
-}
 
 
 // ═══════════════════════════════════════════════════════
@@ -1422,38 +1340,53 @@ const MP={
     const ci=Math.abs([...myId].reduce((a,c)=>a+c.charCodeAt(0),0))%this.COLORS.length;
     this.myColor=this.COLORS[ci];
     this.active=true;
-    this.sdk=await Arcadia.getMultiplayer();
-    await this.sdk.connect(session,{userId:myId,name:P.name,avatar:P.avatar,color:this.myColor});
+
+    // Use official Arcadia SDK — getMultiplayer() returns a real ArcadiaMultiplayer
+    this.sdk = await window.Arcadia.getMultiplayer();
+    await this.sdk.connect(session, {
+      username: P.name,
+      avatar:   P.avatar,
+      color:    this.myColor,
+      userId:   myId
+    });
 
     if(isHost){
       this.sdk.send('world-seed',{seed:wCfg.seed,biome:wCfg.biome,diff:wCfg.diff,name:wCfg.name,dlcs:[...DLC.owned]});
     }
 
-    this.sdk.on('player-state',({from,data})=>{
-      const ex=this.peers.get(from);
+    // Arcadia SDK: event callbacks receive data directly with senderId injected
+    this.sdk.on('player-state', data => {
+      if(data.senderId===this.myId) return;
+      const id=data.senderId;
+      const ex=this.peers.get(id);
       if(!ex){
-        this.peers.set(from,{...data,walkCycle:0,animT:0,wxT:data.wx,wyT:data.wy});
+        this.peers.set(id,{...data,walkCycle:0,animT:0,wxT:data.wx,wyT:data.wy});
         addMsg(`👋 ${data.name} entró`,true);
         Snd.sfx('mp_join');
       } else {
-        this.peers.set(from,{...ex,...data,wxT:data.wx,wyT:data.wy});
+        this.peers.set(id,{...ex,...data,wxT:data.wx,wyT:data.wy});
       }
     });
 
-    this.sdk.on('world-seed',({from,data})=>{
-      if(from===this.myId) return;
+    this.sdk.on('world-seed', data => {
+      if(data.senderId===this.myId) return;
       wCfg.seed=data.seed; wCfg.biome=data.biome; wCfg.diff=data.diff; wCfg.name=data.name||wCfg.name;
-      // Apply host DLCs temporarily
       if(data.dlcs) DLC.applyHostPack(data.dlcs);
       addMsg('🌍 Mundo sincronizado',true);
     });
 
-    this.sdk.on('user-left',({from})=>{
-      if(this.peers.has(from)){addMsg(`👋 ${this.peers.get(from).name} salió`,true);this.peers.delete(from);}
+    this.sdk.on('user-joined', data => {
+      addMsg(`👋 ${data.username||data.name||'Jugador'} entró`,true);
+      Snd.sfx('mp_join');
     });
 
-    this.sdk.on('chat',({from,data})=>{
-      if(from===this.myId)return;
+    this.sdk.on('user-left', data => {
+      const id=data.userId||data.senderId;
+      if(this.peers.has(id)){addMsg(`👋 ${this.peers.get(id).name} salió`,true);this.peers.delete(id);}
+    });
+
+    this.sdk.on('chat', data => {
+      if(data.senderId===this.myId) return;
       appendChatMsg({name:data.name,text:data.text,avatar:data.avatar});
     });
 
@@ -1462,17 +1395,16 @@ const MP={
     document.getElementById('chatPanel').classList.add('on');
     chatOpen=true;
     addMsg(`👥 Online · ${session}`,true);
-    this._startLobbyPoll();
   },
 
   publish(){
-    if(!this.sdk) return;
+    if(!this.sdk||!this.active) return;
     this.sdk.send('player-state',{
-      name:P.name,avatar:P.avatar,color:this.myColor,
-      wx:Math.round(P.wx),wy:Math.round(P.wy),
-      facing:P.facing,moving:P.moving,
-      hp:Math.round(P.hp),mhp:P.mhp,level:P.level,
-      torch:P.torch,lantern:P.lantern,ts:Date.now()
+      name:P.name, avatar:P.avatar, color:this.myColor,
+      wx:Math.round(P.wx), wy:Math.round(P.wy),
+      facing:P.facing, moving:P.moving,
+      hp:Math.round(P.hp), mhp:P.mhp, level:P.level,
+      torch:P.torch, lantern:P.lantern
     });
   },
 
@@ -1487,47 +1419,25 @@ const MP={
 
   stop(){
     clearInterval(this._pubId);
-    clearInterval(this._pollId);
     this.sdk?.disconnect();
-    this.active=false; this.peers.clear();
+    this.active=false; this.peers.clear(); this.sdk=null;
     document.getElementById('mpP').classList.remove('on');
     document.getElementById('chatPanel').classList.remove('on');
     chatOpen=false;
   },
 
-  _startLobbyPoll(){
-    clearInterval(this._pollId);
-    this._pollId=setInterval(()=>this._pollPlayers(),1200);
-  },
-
-  _pollPlayers(){
-    try{
-      const bk=`arc_${this.session}_idx`;
-      const arr=JSON.parse(localStorage.getItem(bk)||'[]');
-      const now=Date.now(), seen=new Map();
-      arr.filter(e=>now-e.ts<8000).forEach(e=>{
-        const m=e.k.match(/^arc_[^_]+_([^_]+)_player-state$/);
-        if(m&&m[1]!==this.myId){
-          try{const pkg=JSON.parse(localStorage.getItem(e.k)||'null');if(pkg)seen.set(m[1],pkg.data);}catch(_){}
-        }
-      });
-      // Update pause panel if open
-      this._renderPausePanel(seen);
-    }catch(_){}
-  },
-
-  _renderPausePanel(seen){
+  _renderPausePanel(){
     const list=document.getElementById('mpPlayerList');if(!list)return;
-    if(!seen||!seen.size){
+    if(!this.peers.size){
       list.innerHTML='<div class="mpInEmpty">Sin jugadores conectados</div>';
       const dot=document.getElementById('mpDot');if(dot)dot.classList.remove('on');
       const st=document.getElementById('mpStatTxt');if(st)st.textContent='Esperando…';
     } else {
-      list.innerHTML=[...seen.entries()].map(([id,d])=>
+      list.innerHTML=[...this.peers.entries()].map(([id,d])=>
         `<div class="mpInPeer"><div class="mpInPeerDot" style="background:${d?.color||'#4ecb71'}"></div><span>${d?.avatar||'🧑'} ${d?.name||id.slice(0,10)}</span><span style="margin-left:auto;font-size:7px;color:#2a4a5a">Lv${d?.level||1}</span></div>`
       ).join('');
       const dot=document.getElementById('mpDot');if(dot)dot.classList.add('on');
-      const st=document.getElementById('mpStatTxt');if(st)st.textContent=`${seen.size} jugador${seen.size>1?'es':''} online`;
+      const st=document.getElementById('mpStatTxt');if(st)st.textContent=`${this.peers.size} jugador${this.peers.size>1?'es':''} online`;
     }
     const bar=document.getElementById('mpActiveBar');
     if(bar)bar.style.display=this.active?'block':'none';
