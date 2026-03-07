@@ -1341,8 +1341,13 @@ const MP={
     this.myColor=this.COLORS[ci];
     this.active=true;
 
-    // Use official Arcadia SDK — getMultiplayer() returns a real ArcadiaMultiplayer
+    // Use official Arcadia SDK
     this.sdk = await window.Arcadia.getMultiplayer();
+    console.log('[WildCraft MP] sdk:', this.sdk, 'connect:', typeof this.sdk?.connect);
+    if(!this.sdk || typeof this.sdk.connect !== 'function'){
+      addMsg('❌ SDK multijugador no disponible',true);
+      this.active=false; return;
+    }
     await this.sdk.connect(session, {
       username: P.name,
       avatar:   P.avatar,
